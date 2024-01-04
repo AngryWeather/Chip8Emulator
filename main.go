@@ -22,14 +22,14 @@ func (w WrongFilenameExtension) Error() string {
 }
 
 func GetFilenameFromCommand(args []string) (string, error) {
-	if len(args) < 3 {
+	if len(args) < 2 {
 		return "", NoFilenameError{}
 	}
 
-	extension := strings.Split(args[2], ".")
+	extension := strings.Split(args[1], ".")
 	if extension[1] != "ch8" {
-		return "", WrongFilenameExtension{filename: args[2]}
+		return "", WrongFilenameExtension{filename: args[1]}
 	}
 
-	return args[2], nil
+	return args[1], nil
 }
