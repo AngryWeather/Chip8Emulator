@@ -9,16 +9,24 @@ import (
 func TestExtractCommandLineArguments(t *testing.T) {
 	t.Run("Extract filename from command", func(t *testing.T) {
 		os.Args = []string{"go", "main.go", "file.ch8"}
-		got, _ := GetFilenameFromCommand(os.Args)
+		got, err := GetFilenameFromCommand(os.Args)
 		want := "file.ch8"
+
+		if err != nil {
+			t.Fatalf("didn't expect an error, got %T", err)
+		}
 
 		assertFilename(t, got, want)
 	})
 	t.Run("Return 'test_file.ch8' from command", func(t *testing.T) {
 		os.Args = []string{"go", "main.go", "test_file.ch8"}
 
-		got, _ := GetFilenameFromCommand(os.Args)
+		got, err := GetFilenameFromCommand(os.Args)
 		want := "test_file.ch8"
+
+		if err != nil {
+			t.Fatalf("didn't expect an error, got %T", err)
+		}
 
 		assertFilename(t, got, want)
 	})
@@ -27,24 +35,50 @@ func TestExtractCommandLineArguments(t *testing.T) {
 
 		_, err := GetFilenameFromCommand(os.Args)
 
-		if err == nil {
-			t.Fatalf("expected an error")
-		}
+		assertErrorExpected(t, err)
 
 		var got NoFilenameError
 		isNoFilenameError := errors.As(err, &got)
 		want := NoFilenameError{}
 
-		if !isNoFilenameError {
-			t.Fatalf("was not a NoFilenameError got %T", err)
-		}
+		assertIsError(t, isNoFilenameError, want, err)
 
-		if got != want {
-			t.Errorf("got %v, want %v", got, want)
-		}
-
+		assertError(t, got, want)
 	})
 
+	t.Run("Return error if file extension is not '.ch8'", func(t *testing.T) {
+		os.Args = []string{"go", "main.go", "test_file.txt"}
+
+		_, err := GetFilenameFromCommand(os.Args)
+
+		assertErrorExpected(t, err)
+
+		var got WrongFilenameExtension
+		isWrongFilenameExtension := errors.As(err, &got)
+		want := WrongFilenameExtension{filename: os.Args[2]}
+
+		assertIsError(t, isWrongFilenameExtension, want, err)
+
+		assertError(t, got, want)
+	})
+}
+
+func assertIsError(t testing.TB, b bool, want, err error) {
+	if !b {
+		t.Fatalf("was not a %T, got %T", want, err)
+	}
+}
+
+func assertError(t testing.TB, got, want error) {
+	if got != want {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+func assertErrorExpected(t testing.TB, err error) {
+	if err == nil {
+		t.Fatalf("expected an error")
+	}
 }
 
 func assertFilename(t testing.TB, got, want string) {
