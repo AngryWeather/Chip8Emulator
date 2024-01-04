@@ -11,9 +11,7 @@ func TestExtractCommandLineArguments(t *testing.T) {
 		got := GetFilenameFromCommand(os.Args)
 		want := "file.ch8"
 
-		if got != want {
-			t.Errorf("got %v, want %q", got, want)
-		}
+		assertFilename(t, got, want)
 	})
 	t.Run("Return 'test_file.ch8' from command", func(t *testing.T) {
 		os.Args = []string{"go", "main.go", "test_file.ch8"}
@@ -21,9 +19,14 @@ func TestExtractCommandLineArguments(t *testing.T) {
 		got := GetFilenameFromCommand(os.Args)
 		want := "test_file.ch8"
 
-		if got != want {
-			t.Errorf("got %v, want %q", got, want)
-		}
+		assertFilename(t, got, want)
 	})
 
+}
+
+func assertFilename(t testing.TB, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got %v, want %q", got, want)
+	}
 }
