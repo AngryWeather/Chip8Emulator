@@ -8,7 +8,7 @@ import (
 
 func TestExtractCommandLineArguments(t *testing.T) {
 	t.Run("Extract filename from command", func(t *testing.T) {
-		os.Args = []string{"go", "main.go", "file.ch8"}
+		os.Args = []string{"go run main.go", "file.ch8"}
 		got, err := GetFilenameFromCommand(os.Args)
 		want := "file.ch8"
 
@@ -19,7 +19,7 @@ func TestExtractCommandLineArguments(t *testing.T) {
 		assertFilename(t, got, want)
 	})
 	t.Run("Return 'test_file.ch8' from command", func(t *testing.T) {
-		os.Args = []string{"go", "main.go", "test_file.ch8"}
+		os.Args = []string{"go run main.go", "test_file.ch8"}
 
 		got, err := GetFilenameFromCommand(os.Args)
 		want := "test_file.ch8"
@@ -31,7 +31,7 @@ func TestExtractCommandLineArguments(t *testing.T) {
 		assertFilename(t, got, want)
 	})
 	t.Run("Return error if no filename was given", func(t *testing.T) {
-		os.Args = []string{"go", "main.go"}
+		os.Args = []string{"go run main.go"}
 
 		_, err := GetFilenameFromCommand(os.Args)
 
@@ -47,7 +47,7 @@ func TestExtractCommandLineArguments(t *testing.T) {
 	})
 
 	t.Run("Return error if file extension is not '.ch8'", func(t *testing.T) {
-		os.Args = []string{"go", "main.go", "test_file.txt"}
+		os.Args = []string{"go run main.go", "test_file.txt"}
 
 		_, err := GetFilenameFromCommand(os.Args)
 
@@ -55,7 +55,7 @@ func TestExtractCommandLineArguments(t *testing.T) {
 
 		var got WrongFilenameExtension
 		isWrongFilenameExtension := errors.As(err, &got)
-		want := WrongFilenameExtension{filename: os.Args[2]}
+		want := WrongFilenameExtension{filename: os.Args[1]}
 
 		assertIsError(t, isWrongFilenameExtension, want, err)
 
