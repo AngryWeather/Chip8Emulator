@@ -27,6 +27,7 @@ func GetFilenameFromCommand(args []string) (string, error) {
 	}
 
 	extension := strings.Split(args[2], ".")
+	// chip8 programs need to have .ch8 extension
 	if extension[1] != "ch8" {
 		return "", WrongFilenameExtension{filename: args[2]}
 	}
