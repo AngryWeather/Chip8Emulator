@@ -20,6 +20,7 @@ func main() {
 	}
 
 	program := readFileToBuffer(filename)
+	// chip := chip8.NewChip8()
 	print(fmt.Sprintf("%x", program[2]))
 }
 
