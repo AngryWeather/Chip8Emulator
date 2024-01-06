@@ -1,24 +1,24 @@
 package chip8
 
 type chip8 struct {
-	memory    []byte
-	registers []byte
-	timers    []byte
-	stack     []uint16
-	pc        uint16
-	sp        uint8
-	i         uint16
+	Memory    []byte
+	Registers []byte
+	Timers    []byte
+	Stack     []uint16
+	Pc        uint16
+	Sp        uint8
+	I         uint16
 }
 
 func NewChip8() *chip8 {
 	chip := &chip8{
-		memory:    make([]byte, 4096),
-		registers: make([]byte, 16),
-		timers:    make([]byte, 2),
-		stack:     make([]uint16, 16),
-		pc:        0x200,
-		sp:        0,
-		i:         0,
+		Memory:    make([]byte, 4096),
+		Registers: make([]byte, 16),
+		Timers:    make([]byte, 2),
+		Stack:     make([]uint16, 16),
+		Pc:        0x200,
+		Sp:        0,
+		I:         0,
 	}
 
 	return chip

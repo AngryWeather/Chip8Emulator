@@ -1,6 +1,7 @@
 package main
 
 import (
+	"chip8emulator/chip8"
 	"fmt"
 	"io"
 	"os"
@@ -20,8 +21,9 @@ func main() {
 	}
 
 	program := readFileToBuffer(filename)
-	// chip := chip8.NewChip8()
-	print(fmt.Sprintf("%x", program[2]))
+
+	chip := chip8.NewChip8()
+	copy(chip.Memory[0x200:], program)
 }
 
 func readFileToBuffer(filename string) []byte {
