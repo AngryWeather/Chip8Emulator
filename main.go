@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -11,6 +13,45 @@ type WrongFilenameExtension struct {
 }
 
 func main() {
+	filename, err := GetFilenameFromCommand(os.Args)
+
+	if err != nil {
+		panic(err)
+	}
+
+	program := readFileToBuffer(filename)
+	print(fmt.Sprintf("%x", program[2]))
+}
+
+func readFileToBuffer(filename string) []byte {
+	file, err := os.Open(filename)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error reading file %q", filename))
+	}
+
+	defer file.Close()
+
+	fileinfo, err := file.Stat()
+
+	if err != nil {
+		panic(err)
+	}
+
+	filesize := fileinfo.Size()
+
+	b := make([]byte, filesize)
+
+	for {
+		_, err := file.Read(b)
+		if err != nil {
+			if err != io.EOF {
+				panic(err)
+			}
+			break
+		}
+	}
+	return b
 }
 
 func (n NoFilenameError) Error() string {

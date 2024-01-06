@@ -8,6 +8,9 @@
 *.so
 *.dylib
 
+# ch8 files
+*.ch8
+
 # Test binary, built with `go test -c`
 *.test
 
