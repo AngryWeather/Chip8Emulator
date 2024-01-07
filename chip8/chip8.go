@@ -1,6 +1,6 @@
 package chip8
 
-type chip8 struct {
+type Chip8 struct {
 	Memory    []byte
 	Registers []byte
 	Timers    []byte
@@ -11,8 +11,8 @@ type chip8 struct {
 	I         uint16
 }
 
-func NewChip8() *chip8 {
-	chip := &chip8{
+func NewChip8() *Chip8 {
+	chip := &Chip8{
 		Memory:    make([]byte, 4096),
 		Registers: make([]byte, 16),
 		Timers:    make([]byte, 2),
@@ -31,7 +31,17 @@ type EmulatorStore interface {
 }
 
 type Emulator struct {
-	store EmulatorStore
+	EmulatorStore
+}
+
+func (e *Emulator) LoadRegister() {
+
+}
+
+func (c *Chip8) ClearScreen() {
+	for i := range c.Screen {
+		c.Screen[i] = 0
+	}
 }
 
 func GetInstruction(firstByte, secondByte byte) uint16 {
@@ -39,5 +49,5 @@ func GetInstruction(firstByte, secondByte byte) uint16 {
 }
 
 func (e *Emulator) Emulate() {
-	e.store.ClearScreen()
+	e.EmulatorStore.ClearScreen()
 }

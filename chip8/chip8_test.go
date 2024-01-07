@@ -9,12 +9,6 @@ type Chip8StubStore struct {
 	Screen []byte
 }
 
-func (c *Chip8StubStore) ClearScreen() {
-	for i := range c.Screen {
-		c.Screen[i] = 0
-	}
-}
-
 func TestGetInstruction(t *testing.T) {
 	t.Run("with bytes 00 E0 get instruction 00E0", func(t *testing.T) {
 		var firstByte byte = 0x00
@@ -39,12 +33,12 @@ func TestGetInstruction(t *testing.T) {
 }
 
 func TestClearScreen(t *testing.T) {
-	chip8 := &Chip8StubStore{
-		Screen: make([]byte, 6),
-	}
-	emulator := Emulator{chip8}
-
 	t.Run("Clears the screen", func(t *testing.T) {
+		chip8 := &Chip8{}
+		emulator := Emulator{EmulatorStore: chip8}
+
+		chip8.Screen = []byte{1, 0, 1, 0, 1, 1}
+
 		emulator.Emulate()
 
 		got := chip8.Screen
@@ -53,6 +47,9 @@ func TestClearScreen(t *testing.T) {
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("got %v, want %v", got, want)
 		}
+	})
+
+	t.Run("Load register 0xa with value 0x10", func(t *testing.T) {
 	})
 }
 
