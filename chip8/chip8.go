@@ -1,5 +1,7 @@
 package chip8
 
+import "fmt"
+
 type Chip8 struct {
 	Memory    []byte
 	Registers []byte
@@ -55,5 +57,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0x6:
 		register := firstByte & 0x0f
 		e.EmulatorStore.LoadRegister(register, secondByte)
+	default:
+		fmt.Printf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte))
 	}
+
 }
