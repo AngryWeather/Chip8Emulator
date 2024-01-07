@@ -26,6 +26,9 @@ func TestClearScreen(t *testing.T) {
 		}
 	})
 
+}
+
+func TestLoadRegister(t *testing.T) {
 	t.Run("Load register 0xa with value 0x10", func(t *testing.T) {
 		chip8 := &Chip8{}
 		emulator := Emulator{EmulatorStore: chip8}
