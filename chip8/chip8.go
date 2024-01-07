@@ -28,14 +28,11 @@ func NewChip8() *Chip8 {
 
 type EmulatorStore interface {
 	ClearScreen()
+	LoadRegister(register, secondByte byte)
 }
 
 type Emulator struct {
 	EmulatorStore
-}
-
-func (e *Emulator) LoadRegister() {
-
 }
 
 func (c *Chip8) ClearScreen() {
@@ -44,10 +41,19 @@ func (c *Chip8) ClearScreen() {
 	}
 }
 
-func GetInstruction(firstByte, secondByte byte) uint16 {
-	return uint16(firstByte)<<8 | uint16(secondByte)
+func (c *Chip8) LoadRegister(register, secondByte byte) {
+	c.Registers[register] = secondByte
 }
 
-func (e *Emulator) Emulate() {
-	e.EmulatorStore.ClearScreen()
+func (e *Emulator) Emulate(firstByte, secondByte byte) {
+	switch firstByte >> 4 {
+	case 0x0:
+		switch secondByte {
+		case 0xe0:
+			e.EmulatorStore.ClearScreen()
+		}
+	case 0x6:
+		register := firstByte & 0x0f
+		e.EmulatorStore.LoadRegister(register, secondByte)
+	}
 }
