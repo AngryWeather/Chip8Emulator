@@ -26,6 +26,18 @@ func NewChip8() *chip8 {
 	return chip
 }
 
+type EmulatorStore interface {
+	ClearScreen()
+}
+
+type Emulator struct {
+	store EmulatorStore
+}
+
 func GetInstruction(firstByte, secondByte byte) uint16 {
 	return uint16(firstByte)<<8 | uint16(secondByte)
+}
+
+func (e *Emulator) Emulate() {
+	e.store.ClearScreen()
 }

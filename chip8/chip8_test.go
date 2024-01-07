@@ -1,6 +1,19 @@
 package chip8
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
+
+type Chip8StubStore struct {
+	Screen []byte
+}
+
+func (c *Chip8StubStore) ClearScreen() {
+	for i := range c.Screen {
+		c.Screen[i] = 0
+	}
+}
 
 func TestGetInstruction(t *testing.T) {
 	t.Run("with bytes 00 E0 get instruction 00E0", func(t *testing.T) {
@@ -22,6 +35,24 @@ func TestGetInstruction(t *testing.T) {
 		var want uint16 = 0x6734
 
 		assertInstruction(t, got, want)
+	})
+}
+
+func TestClearScreen(t *testing.T) {
+	chip8 := &Chip8StubStore{
+		Screen: make([]byte, 6),
+	}
+	emulator := Emulator{chip8}
+
+	t.Run("Clears the screen", func(t *testing.T) {
+		emulator.Emulate()
+
+		got := chip8.Screen
+		want := []byte{0, 0, 0, 0, 0, 0}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %v, want %v", got, want)
+		}
 	})
 }
 
