@@ -32,26 +32,41 @@ type EmulatorStore interface {
 	ClearScreen()
 	LoadRegister(firstByte, secondByte byte)
 	LoadIndexRegister(firstByte, secondByte byte)
+	JumpToInstruction(firstByte, secondByte byte)
 }
 
 type Emulator struct {
 	EmulatorStore
 }
 
+// ClearScreen clears the screen by setting all pixels to 0.
 func (c *Chip8) ClearScreen() {
 	for i := range c.Screen {
 		c.Screen[i] = 0
 	}
 }
 
+// LoadRegister loads secondByte into register.
 func (c *Chip8) LoadRegister(firstByte, secondByte byte) {
+	// register name is represented by the last 4 bits of the first byte.
 	register := firstByte & 0x0f
 	c.Registers[register] = secondByte
 }
 
+func get12BitValue(firstByte, secondByte byte) uint16 {
+	return uint16(firstByte&0xf)<<8 | uint16(secondByte)
+}
+
+// LoadIndexRegister loads 12 bits into index register.
 func (c *Chip8) LoadIndexRegister(firstByte, secondByte byte) {
-	value := uint16(firstByte&0xf)<<8 | uint16(secondByte)
-	c.I = value
+	// value is the last 4 bits of the first byte and the last byte.
+	// shift first byte to fit the second byte and connect them together.
+	c.I = get12BitValue(firstByte, secondByte)
+}
+
+// JumpToInstruction sets the program counter to the new value.
+func (c *Chip8) JumpToInstruction(firstByte, secondByte byte) {
+	c.Pc = get12BitValue(firstByte, secondByte)
 }
 
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
@@ -61,6 +76,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		case 0xe0:
 			e.ClearScreen()
 		}
+	case 0x1:
+		e.JumpToInstruction(firstByte, secondByte)
 	case 0x6:
 		e.LoadRegister(firstByte, secondByte)
 	case 0xa:

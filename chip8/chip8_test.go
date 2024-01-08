@@ -29,7 +29,7 @@ func TestClearScreen(t *testing.T) {
 }
 
 func TestLoadRegister(t *testing.T) {
-	t.Run("Load register 0xa with value 0x10", func(t *testing.T) {
+	t.Run("Load register 0x1 with value 0xff", func(t *testing.T) {
 		chip8 := &Chip8{}
 		emulator := Emulator{EmulatorStore: chip8}
 		chip8.Registers = []byte{0, 0, 0}
@@ -55,8 +55,27 @@ func TestLoadIndexRegister(t *testing.T) {
 		got := chip8.I
 		var want uint16 = 0x231
 
-		if got != want {
-			t.Errorf("got %x, want %x", got, want)
-		}
+		AssertAddress(t, got, want)
 	})
+}
+
+func TestJumpInstruction(t *testing.T) {
+	t.Run("Instruction with bytes 0x13 and 0x45 sets program counter to 0x345", func(t *testing.T) {
+		chip8 := &Chip8{}
+		emulator := Emulator{EmulatorStore: chip8}
+
+		emulator.Emulate(0x13, 0x45)
+
+		got := chip8.Pc
+		var want uint16 = 0x345
+
+		AssertAddress(t, got, want)
+	})
+}
+
+func AssertAddress(t testing.TB, got, want uint16) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got %x, want %x", got, want)
+	}
 }
