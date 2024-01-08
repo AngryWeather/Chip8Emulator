@@ -54,13 +54,13 @@ func (c *Chip8) LoadRegister(firstByte, secondByte byte) {
 }
 
 func get12BitValue(firstByte, secondByte byte) uint16 {
+	// value is the last 4 bits of the first byte and the last byte.
+	// shift first byte to fit the second byte and connect them together.
 	return uint16(firstByte&0xf)<<8 | uint16(secondByte)
 }
 
 // LoadIndexRegister loads 12 bits into index register.
 func (c *Chip8) LoadIndexRegister(firstByte, secondByte byte) {
-	// value is the last 4 bits of the first byte and the last byte.
-	// shift first byte to fit the second byte and connect them together.
 	c.I = get12BitValue(firstByte, secondByte)
 }
 
