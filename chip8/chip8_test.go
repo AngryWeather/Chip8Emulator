@@ -44,3 +44,19 @@ func TestLoadRegister(t *testing.T) {
 		}
 	})
 }
+
+func TestLoadIndexRegister(t *testing.T) {
+	t.Run("Load index register with 0x231", func(t *testing.T) {
+		chip8 := &Chip8{}
+		emulator := Emulator{EmulatorStore: chip8}
+
+		emulator.Emulate(0xa2, 0x31)
+
+		got := chip8.I
+		var want uint16 = 0x231
+
+		if got != want {
+			t.Errorf("got %x, want %x", got, want)
+		}
+	})
+}

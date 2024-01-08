@@ -31,6 +31,7 @@ func NewChip8() *Chip8 {
 type EmulatorStore interface {
 	ClearScreen()
 	LoadRegister(register, secondByte byte)
+	LoadIndexRegister(value uint16)
 }
 
 type Emulator struct {
@@ -47,6 +48,10 @@ func (c *Chip8) LoadRegister(register, secondByte byte) {
 	c.Registers[register] = secondByte
 }
 
+func (c *Chip8) LoadIndexRegister(value uint16) {
+	c.I = value
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -57,6 +62,9 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0x6:
 		register := firstByte & 0x0f
 		e.EmulatorStore.LoadRegister(register, secondByte)
+	case 0xa:
+		value := uint16(firstByte&0xf)<<8 | uint16(secondByte)
+		e.EmulatorStore.LoadIndexRegister(value)
 	default:
 		fmt.Printf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte))
 	}
