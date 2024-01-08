@@ -59,12 +59,12 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0x0:
 		switch secondByte {
 		case 0xe0:
-			e.EmulatorStore.ClearScreen()
+			e.ClearScreen()
 		}
 	case 0x6:
-		e.EmulatorStore.LoadRegister(firstByte, secondByte)
+		e.LoadRegister(firstByte, secondByte)
 	case 0xa:
-		e.EmulatorStore.LoadIndexRegister(firstByte, secondByte)
+		e.LoadIndexRegister(firstByte, secondByte)
 	default:
 		fmt.Printf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte))
 	}
