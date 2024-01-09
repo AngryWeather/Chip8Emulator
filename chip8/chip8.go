@@ -1,6 +1,8 @@
 package chip8
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Chip8 struct {
 	Memory    []byte
@@ -8,6 +10,8 @@ type Chip8 struct {
 	Timers    []byte
 	Stack     []uint16
 	Screen    []uint8
+	Width     byte
+	Height    byte
 	Pc        uint16
 	Sp        uint8
 	I         uint16
@@ -19,7 +23,9 @@ func NewChip8() *Chip8 {
 		Registers: make([]byte, 16),
 		Timers:    make([]byte, 2),
 		Stack:     make([]uint16, 16),
-		Screen:    make([]uint8, 64*32),
+		Screen:    make([]uint8, 64*32*3),
+		Width:     64,
+		Height:    32,
 		Pc:        0x200,
 		Sp:        0,
 		I:         0,
@@ -33,6 +39,7 @@ type EmulatorStore interface {
 	LoadRegister(firstByte, secondByte byte)
 	LoadIndexRegister(firstByte, secondByte byte)
 	JumpToInstruction(firstByte, secondByte byte)
+	Draw(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -69,6 +76,44 @@ func (c *Chip8) JumpToInstruction(firstByte, secondByte byte) {
 	c.Pc = get12BitValue(firstByte, secondByte)
 }
 
+func (c *Chip8) Draw(firstByte, secondByte byte) {
+	bytesToRead := secondByte & 0xf
+	x := c.Registers[firstByte&0xf]
+	y := c.Registers[secondByte>>4]
+
+	for i := c.I; i < (uint16(bytesToRead) + c.I); i++ {
+		var currentByte byte = c.Memory[i]
+		fmt.Printf("i: %d\n\n", i)
+		var r byte
+		var g byte
+		var b byte
+
+		for j := 0; j < 8; j++ {
+			pixel := currentByte >> 7 & 0x1
+			if pixel == 1 {
+				r = 1
+				g = 1
+				b = 1
+			} else {
+				r = 0
+				g = 0
+				b = 0
+			}
+
+			position := (x * 3) + (y * (c.Width * 3))
+			c.Screen[position] ^= r
+			c.Screen[position+1] ^= g
+			c.Screen[position+2] ^= b
+
+			currentByte = currentByte << 1
+			x += 1
+		}
+		y += 1
+		x = c.Registers[firstByte&0xf]
+
+	}
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -82,6 +127,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.LoadRegister(firstByte, secondByte)
 	case 0xa:
 		e.LoadIndexRegister(firstByte, secondByte)
+	case 0xd:
+		e.Draw(firstByte, secondByte)
 	default:
 		fmt.Printf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte))
 	}

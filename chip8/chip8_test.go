@@ -73,6 +73,68 @@ func TestJumpInstruction(t *testing.T) {
 	})
 }
 
+func TestDrawInstruction(t *testing.T) {
+	t.Run("Instruction 0xd001 changes screen", func(t *testing.T) {
+		chip8 := &Chip8{}
+		chip8.Memory = []byte{0, 0xff}
+		chip8.Registers = []byte{0, 0, 0}
+		chip8.Registers[0x0] = 0
+		chip8.Screen = make([]uint8, 3*8)
+		chip8.Width = 8
+		chip8.I = 0x1
+		emulator := Emulator{EmulatorStore: chip8}
+
+		emulator.Emulate(0xd0, 0x01)
+
+		got := chip8.Screen
+		want := []byte{
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1,
+			1, 1, 1,
+		}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %v, want %v", got, want)
+		}
+
+	})
+
+	t.Run("Instruction 0xd002 Draws two bytes", func(t *testing.T) {
+		chip8 := &Chip8{}
+		chip8.Width = 12
+		chip8.Height = 2
+		chip8.Screen = make([]uint8, 12*3*2)
+		chip8.Memory = []byte{0, 0xff, 0x0f}
+		chip8.Registers = []byte{0, 0, 0}
+		chip8.Registers[0x0] = 0
+		chip8.I = 0x1
+		emulator := Emulator{EmulatorStore: chip8}
+
+		emulator.Emulate(0xd0, 0x02)
+
+		got := chip8.Screen
+		want := []byte{
+			// first row
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			// second row
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
