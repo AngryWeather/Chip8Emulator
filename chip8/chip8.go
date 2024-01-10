@@ -87,32 +87,29 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 
 	for i := c.I; i < (uint16(bytesToRead) + c.I); i++ {
 		var currentByte byte = c.Memory[i]
-		var r, g, b, a uint8
+		var color color.RGBA
 
+		// check each bit in the current byte
 		for j := 0; j < 8; j++ {
 			pixel := currentByte >> 7 & 0x1
 			if pixel == 1 {
-				r = rl.White.R
-				g = rl.White.G
-				b = rl.White.B
-				a = rl.White.A
+				color = rl.White
 			} else {
-				r = rl.Black.R
-				g = rl.Black.G
-				b = rl.Black.B
-				a = rl.Black.A
+				color = rl.Black
 			}
 
+			// position in 1D array is based on x, y and width
 			var position int = int(x) + (int(y) * int(c.Width))
-			c.Screen[position].R ^= r
-			c.Screen[position].G ^= g
-			c.Screen[position].B ^= b
-			c.Screen[position].A = a
+			c.Screen[position] = color
 
+			// shift byte to access next bit from left
 			currentByte = currentByte << 1
+			// increase x to draw in the next x coordinate
 			x += 1
 		}
+		// increase y to move down
 		y += 1
+		// reset x
 		x = c.Registers[firstByte&0xf]
 
 	}
