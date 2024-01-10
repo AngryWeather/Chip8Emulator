@@ -57,7 +57,7 @@ func main() {
 		for chip.Pc < uint16(len(program)+0x200) {
 			firstByte := chip.Memory[chip.Pc]
 			secondByte := chip.Memory[chip.Pc+1]
-			fmt.Printf("\n%x:%x\n", firstByte, secondByte)
+			fmt.Printf("%x%x\n", firstByte, secondByte)
 			emulator.Emulate(firstByte, secondByte)
 
 			if firstByte == 0x00 && secondByte == 0xe0 {

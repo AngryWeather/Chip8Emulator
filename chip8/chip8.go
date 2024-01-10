@@ -91,7 +91,6 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 
 		for j := 0; j < 8; j++ {
 			pixel := currentByte >> 7 & 0x1
-			fmt.Printf("\npixel: %b", currentByte)
 			if pixel == 1 {
 				r = rl.White.R
 				g = rl.White.G
