@@ -18,6 +18,7 @@ type Chip8 struct {
 	Pc        uint16
 	Sp        uint8
 	I         uint16
+	Texture   rl.Texture2D
 }
 
 func NewChip8() *Chip8 {
@@ -86,11 +87,11 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 
 	for i := c.I; i < (uint16(bytesToRead) + c.I); i++ {
 		var currentByte byte = c.Memory[i]
-		fmt.Printf("i: %d\n\n", i)
 		var r, g, b, a uint8
 
 		for j := 0; j < 8; j++ {
 			pixel := currentByte >> 7 & 0x1
+			fmt.Printf("\npixel: %b", currentByte)
 			if pixel == 1 {
 				r = rl.White.R
 				g = rl.White.G
@@ -103,7 +104,7 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 				a = rl.Black.A
 			}
 
-			position := (x) + (y * (c.Width))
+			var position int = int(x) + (int(y) * int(c.Width))
 			c.Screen[position].R ^= r
 			c.Screen[position].G ^= g
 			c.Screen[position].B ^= b

@@ -3,7 +3,6 @@ package main
 import (
 	"chip8emulator/chip8"
 	"fmt"
-	"image/color"
 	"io"
 	"os"
 	"strings"
@@ -17,37 +16,6 @@ type WrongFilenameExtension struct {
 }
 
 func main() {
-	// initialize chip8
-	// chip8emulator := chip8.NewChip8()
-	// emulator := chip8.Emulator{EmulatorStore: chip8emulator}
-
-	width := int32(640)
-	height := int32(320)
-	textureWidth := int32(64)
-	textureHeight := int32(32)
-
-	rl.InitWindow(width, height, "Chip8")
-	defer rl.CloseWindow()
-	checked := rl.Image{Format: rl.UncompressedR8g8b8a8, Width: textureWidth, Height: textureHeight, Mipmaps: 1}
-
-	t := rl.LoadTextureFromImage(&checked)
-	rl.UnloadImage(&checked)
-
-	rl.SetTargetFPS(60)
-	var pixels = make([]color.RGBA, textureWidth*textureHeight)
-	for i := range pixels {
-		pixels[i] = rl.DarkPurple
-	}
-
-	for !rl.WindowShouldClose() {
-		rl.BeginDrawing()
-
-		rl.ClearBackground(rl.Black)
-		rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
-		rl.UpdateTexture(t, pixels)
-
-		rl.EndDrawing()
-	}
 
 	filename, err := GetFilenameFromCommand(os.Args)
 
@@ -57,8 +25,52 @@ func main() {
 
 	program := readFileToBuffer(filename)
 
+	//initialize chip8
 	chip := chip8.NewChip8()
+	for i := range chip.Screen {
+		chip.Screen[i] = rl.Black
+	}
 	copy(chip.Memory[0x200:], program)
+	emulator := chip8.Emulator{EmulatorStore: chip}
+
+	width := int32(1280)
+	height := int32(720)
+	textureWidth := int32(64)
+	textureHeight := int32(32)
+
+	rl.InitWindow(width, height, "Chip8")
+	defer rl.CloseWindow()
+	checked := rl.Image{Format: rl.UncompressedR8g8b8a8, Width: textureWidth, Height: textureHeight, Mipmaps: 1}
+
+	t := rl.LoadTextureFromImage(&checked)
+	chip.Texture = t
+	rl.UnloadImage(&checked)
+
+	rl.SetTargetFPS(60)
+
+	for !rl.WindowShouldClose() {
+		rl.BeginDrawing()
+
+		rl.ClearBackground(rl.Black)
+		rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
+
+		for chip.Pc < uint16(len(program)+0x200) {
+			firstByte := chip.Memory[chip.Pc]
+			secondByte := chip.Memory[chip.Pc+1]
+			fmt.Printf("\n%x:%x\n", firstByte, secondByte)
+			emulator.Emulate(firstByte, secondByte)
+
+			if firstByte == 0x00 && secondByte == 0xe0 {
+				rl.UpdateTexture(chip.Texture, chip.Screen)
+			}
+			if firstByte>>4 == 0xd {
+				rl.UpdateTexture(t, chip.Screen)
+			}
+			chip.Pc += 2
+		}
+		rl.EndDrawing()
+	}
+
 }
 
 func readFileToBuffer(filename string) []byte {
