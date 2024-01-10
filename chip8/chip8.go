@@ -8,31 +8,35 @@ import (
 )
 
 type Chip8 struct {
-	Memory    []byte
-	Registers []byte
-	Timers    []byte
-	Stack     []uint16
-	Screen    []color.RGBA
-	Width     byte
-	Height    byte
-	Pc        uint16
-	Sp        uint8
-	I         uint16
-	Texture   rl.Texture2D
+	Memory         []byte
+	Registers      []byte
+	Timers         []byte
+	Stack          []uint16
+	Screen         []color.RGBA
+	Width          byte
+	Height         byte
+	Pc             uint16
+	Sp             uint8
+	I              uint16
+	Texture        rl.Texture2D
+	PrimaryColor   color.RGBA
+	SecondaryColor color.RGBA
 }
 
 func NewChip8() *Chip8 {
 	chip := &Chip8{
-		Memory:    make([]byte, 4096),
-		Registers: make([]byte, 16),
-		Timers:    make([]byte, 2),
-		Stack:     make([]uint16, 16),
-		Screen:    make([]color.RGBA, 64*32),
-		Width:     64,
-		Height:    32,
-		Pc:        0x200,
-		Sp:        0,
-		I:         0,
+		Memory:         make([]byte, 4096),
+		Registers:      make([]byte, 16),
+		Timers:         make([]byte, 2),
+		Stack:          make([]uint16, 16),
+		Screen:         make([]color.RGBA, 64*32),
+		Width:          64,
+		Height:         32,
+		Pc:             0x200,
+		Sp:             0,
+		I:              0,
+		PrimaryColor:   rl.White,
+		SecondaryColor: rl.Black,
 	}
 
 	return chip
@@ -53,7 +57,7 @@ type Emulator struct {
 // ClearScreen clears the screen by setting all pixels to 0.
 func (c *Chip8) ClearScreen() {
 	for i := range c.Screen {
-		c.Screen[i] = rl.Black
+		c.Screen[i] = c.SecondaryColor
 	}
 }
 
@@ -93,9 +97,9 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 		for j := 0; j < 8; j++ {
 			pixel := currentByte >> 7 & 0x1
 			if pixel == 1 {
-				color = rl.White
+				color = c.PrimaryColor
 			} else {
-				color = rl.Black
+				color = c.SecondaryColor
 			}
 
 			// position in 1D array is based on x, y and width

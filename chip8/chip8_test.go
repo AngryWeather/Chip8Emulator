@@ -17,6 +17,8 @@ func TestClearScreen(t *testing.T) {
 	t.Run("Clears the screen", func(t *testing.T) {
 		chip8 := &Chip8{}
 		emulator := Emulator{EmulatorStore: chip8}
+		chip8.PrimaryColor = rl.White
+		chip8.SecondaryColor = rl.Black
 
 		chip8.Screen = []color.RGBA{
 			rl.Black,
@@ -93,6 +95,8 @@ func TestDrawInstruction(t *testing.T) {
 		chip8.Memory = []byte{0, 0xff}
 		chip8.Registers = []byte{0, 0, 0}
 		chip8.Registers[0x0] = 0
+		chip8.PrimaryColor = rl.White
+		chip8.SecondaryColor = rl.Black
 		chip8.Screen = make([]color.RGBA, 8)
 		chip8.Width = 8
 		chip8.I = 0x1
@@ -121,6 +125,8 @@ func TestDrawInstruction(t *testing.T) {
 		chip8 := &Chip8{}
 		chip8.Width = 12
 		chip8.Height = 2
+		chip8.PrimaryColor = rl.White
+		chip8.SecondaryColor = rl.Black
 		chip8.Screen = make([]color.RGBA, 12*2)
 		for i := range chip8.Screen {
 			chip8.Screen[i] = rl.Black
@@ -151,6 +157,8 @@ func TestDrawInstruction(t *testing.T) {
 		chip8 := &Chip8{}
 		chip8.Width = 64
 		chip8.Height = 6
+		chip8.PrimaryColor = rl.White
+		chip8.SecondaryColor = rl.Black
 		chip8.Screen = make([]color.RGBA, 64*6)
 		for i := range chip8.Screen {
 			chip8.Screen[i] = rl.Black
