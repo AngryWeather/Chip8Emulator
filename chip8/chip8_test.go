@@ -1,8 +1,12 @@
 package chip8
 
 import (
+	"fmt"
+	"image/color"
 	"reflect"
 	"testing"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Chip8StubStore struct {
@@ -14,12 +18,22 @@ func TestClearScreen(t *testing.T) {
 		chip8 := &Chip8{}
 		emulator := Emulator{EmulatorStore: chip8}
 
-		chip8.Screen = []byte{1, 0, 1, 0, 1, 1}
+		chip8.Screen = []color.RGBA{
+			rl.Black,
+			rl.Black,
+			rl.White,
+			rl.White,
+		}
 
 		emulator.Emulate(0x00, 0xe0)
 
 		got := chip8.Screen
-		want := []byte{0, 0, 0, 0, 0, 0}
+		want := []color.RGBA{
+			rl.Black,
+			rl.Black,
+			rl.Black,
+			rl.Black,
+		}
 
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("got %v, want %v", got, want)
@@ -79,7 +93,7 @@ func TestDrawInstruction(t *testing.T) {
 		chip8.Memory = []byte{0, 0xff}
 		chip8.Registers = []byte{0, 0, 0}
 		chip8.Registers[0x0] = 0
-		chip8.Screen = make([]uint8, 3*8)
+		chip8.Screen = make([]color.RGBA, 8)
 		chip8.Width = 8
 		chip8.I = 0x1
 		emulator := Emulator{EmulatorStore: chip8}
@@ -87,17 +101,16 @@ func TestDrawInstruction(t *testing.T) {
 		emulator.Emulate(0xd0, 0x01)
 
 		got := chip8.Screen
-		want := []byte{
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1,
-			1, 1, 1,
+		want := []color.RGBA{
+			rl.White,
+			rl.White,
+			rl.White,
+			rl.White,
+			rl.White,
+			rl.White,
+			rl.White,
+			rl.White,
 		}
-
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("got %v, want %v", got, want)
 		}
@@ -108,7 +121,11 @@ func TestDrawInstruction(t *testing.T) {
 		chip8 := &Chip8{}
 		chip8.Width = 12
 		chip8.Height = 2
-		chip8.Screen = make([]uint8, 12*3*2)
+		chip8.Screen = make([]color.RGBA, 12*2)
+		for i := range chip8.Screen {
+			chip8.Screen[i] = rl.Black
+		}
+		fmt.Printf("%v", rl.Black)
 		chip8.Memory = []byte{0, 0xff, 0x0f}
 		chip8.Registers = []byte{0, 0, 0}
 		chip8.Registers[0x0] = 0
@@ -118,15 +135,11 @@ func TestDrawInstruction(t *testing.T) {
 		emulator.Emulate(0xd0, 0x02)
 
 		got := chip8.Screen
-		want := []byte{
+		want := []color.RGBA{
 			// first row
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.Black, rl.Black, rl.Black, rl.Black,
 			// second row
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			rl.Black, rl.Black, rl.Black, rl.Black, rl.White, rl.White, rl.White, rl.White, rl.Black, rl.Black, rl.Black, rl.Black,
 		}
 
 		if !reflect.DeepEqual(got, want) {

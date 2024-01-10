@@ -2,6 +2,9 @@ package chip8
 
 import (
 	"fmt"
+	"image/color"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Chip8 struct {
@@ -9,7 +12,7 @@ type Chip8 struct {
 	Registers []byte
 	Timers    []byte
 	Stack     []uint16
-	Screen    []uint8
+	Screen    []color.RGBA
 	Width     byte
 	Height    byte
 	Pc        uint16
@@ -23,7 +26,7 @@ func NewChip8() *Chip8 {
 		Registers: make([]byte, 16),
 		Timers:    make([]byte, 2),
 		Stack:     make([]uint16, 16),
-		Screen:    make([]uint8, 64*32*3),
+		Screen:    make([]color.RGBA, 64*32),
 		Width:     64,
 		Height:    32,
 		Pc:        0x200,
@@ -49,7 +52,7 @@ type Emulator struct {
 // ClearScreen clears the screen by setting all pixels to 0.
 func (c *Chip8) ClearScreen() {
 	for i := range c.Screen {
-		c.Screen[i] = 0
+		c.Screen[i] = rl.Black
 	}
 }
 
@@ -84,26 +87,27 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 	for i := c.I; i < (uint16(bytesToRead) + c.I); i++ {
 		var currentByte byte = c.Memory[i]
 		fmt.Printf("i: %d\n\n", i)
-		var r byte
-		var g byte
-		var b byte
+		var r, g, b, a uint8
 
 		for j := 0; j < 8; j++ {
 			pixel := currentByte >> 7 & 0x1
 			if pixel == 1 {
-				r = 1
-				g = 1
-				b = 1
+				r = rl.White.R
+				g = rl.White.G
+				b = rl.White.B
+				a = rl.White.A
 			} else {
-				r = 0
-				g = 0
-				b = 0
+				r = rl.Black.R
+				g = rl.Black.G
+				b = rl.Black.B
+				a = rl.Black.A
 			}
 
-			position := (x * 3) + (y * (c.Width * 3))
-			c.Screen[position] ^= r
-			c.Screen[position+1] ^= g
-			c.Screen[position+2] ^= b
+			position := (x) + (y * (c.Width))
+			c.Screen[position].R ^= r
+			c.Screen[position].G ^= g
+			c.Screen[position].B ^= b
+			c.Screen[position].A = a
 
 			currentByte = currentByte << 1
 			x += 1
