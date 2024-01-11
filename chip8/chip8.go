@@ -48,6 +48,7 @@ type EmulatorStore interface {
 	LoadIndexRegister(firstByte, secondByte byte)
 	JumpToInstruction(firstByte, secondByte byte)
 	Draw(firstByte, secondByte byte)
+	AddValueToRegister(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -119,6 +120,13 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 	}
 }
 
+func (c *Chip8) AddValueToRegister(firstByte, secondByte byte) {
+	register := c.Registers[firstByte&0xf]
+	value := secondByte
+
+	c.Registers[register] += value
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -130,12 +138,14 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.JumpToInstruction(firstByte, secondByte)
 	case 0x6:
 		e.LoadRegister(firstByte, secondByte)
+	case 0x7:
+		e.AddValueToRegister(firstByte, secondByte)
 	case 0xa:
 		e.LoadIndexRegister(firstByte, secondByte)
 	case 0xd:
 		e.Draw(firstByte, secondByte)
 	default:
-		fmt.Printf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte))
+		fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
 	}
 
 }

@@ -1,7 +1,6 @@
 package chip8
 
 import (
-	"fmt"
 	"image/color"
 	"reflect"
 	"testing"
@@ -131,7 +130,6 @@ func TestDrawInstruction(t *testing.T) {
 		for i := range chip8.Screen {
 			chip8.Screen[i] = rl.Black
 		}
-		fmt.Printf("%v", rl.Black)
 		chip8.Memory = []byte{0, 0xff, 0x0f}
 		chip8.Registers = []byte{0, 0, 0}
 		chip8.Registers[0x0] = 0
@@ -163,7 +161,6 @@ func TestDrawInstruction(t *testing.T) {
 		for i := range chip8.Screen {
 			chip8.Screen[i] = rl.Black
 		}
-		fmt.Printf("%v", rl.Black)
 		chip8.Memory = []byte{0, 0xff, 0x00}
 		chip8.Registers = []byte{0, 0x4, 0}
 
@@ -186,6 +183,21 @@ func TestDrawInstruction(t *testing.T) {
 			t.Errorf("got %v, want %v", got, want)
 		}
 	})
+}
+
+func TestAddToRegister(t *testing.T) {
+	t.Run("Instruction 7004 adds 4 to 0 register", func(t *testing.T) {})
+	chip := NewChip8()
+	chip.Registers[0] = 0
+	emulator := Emulator{EmulatorStore: chip}
+
+	emulator.Emulate(0x70, 0x04)
+	got := chip.Registers[0]
+	var want byte = 0x4
+
+	if got != want {
+		t.Errorf("got %x, want %x", got, want)
+	}
 }
 
 func AssertAddress(t testing.TB, got, want uint16) {
