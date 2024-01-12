@@ -50,6 +50,7 @@ type EmulatorStore interface {
 	Draw(firstByte, secondByte byte)
 	AddValueToRegister(firstByte, secondByte byte)
 	SkipNextInstruction(firstByte, secondByte byte)
+	JumpPlusRegister(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -93,6 +94,11 @@ func (c *Chip8) SkipNextInstruction(firstByte, secondByte byte) {
 	if registerValue == value {
 		c.Pc += 2
 	}
+}
+
+func (c *Chip8) JumpPlusRegister(firstByte, secondByte byte) {
+	register := c.Registers[0x0]
+	c.Pc = get12BitValue(firstByte, secondByte) + uint16(register)
 }
 
 func (c *Chip8) Draw(firstByte, secondByte byte) {
@@ -154,6 +160,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.AddValueToRegister(firstByte, secondByte)
 	case 0xa:
 		e.LoadIndexRegister(firstByte, secondByte)
+	case 0xb:
+		e.JumpPlusRegister(firstByte, secondByte)
 	case 0xd:
 		e.Draw(firstByte, secondByte)
 	default:

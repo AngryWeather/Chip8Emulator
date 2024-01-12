@@ -228,6 +228,21 @@ func TestSkipNextInstruction(t *testing.T) {
 	})
 }
 
+func TestJumpToLocationPlusV0(t *testing.T) {
+	t.Run("instruction 0xb321 with v0 register at 0x4 sets pc to 0x325", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0] = 0x4
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0xb3, 0x21)
+
+		got := chip.Pc
+		var want uint16 = 0x325
+
+		AssertAddress(t, got, want)
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
