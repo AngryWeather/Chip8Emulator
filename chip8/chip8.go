@@ -87,6 +87,7 @@ func (c *Chip8) JumpToInstruction(firstByte, secondByte byte) {
 	c.Pc = get12BitValue(firstByte, secondByte)
 }
 
+// SkipNextInstruction increases the program counter if value of the register is equal to secondByte.
 func (c *Chip8) SkipNextInstruction(firstByte, secondByte byte) {
 	registerValue := c.Registers[firstByte&0xf]
 	value := secondByte
