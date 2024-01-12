@@ -28,7 +28,7 @@ func NewChip8() *Chip8 {
 		Memory:         make([]byte, 4096),
 		Registers:      make([]byte, 16),
 		Timers:         make([]byte, 2),
-		Stack:          make([]uint16, 16),
+		Stack:          make([]uint16, 0, 16),
 		Screen:         make([]color.RGBA, 64*32),
 		Width:          64,
 		Height:         32,
@@ -51,6 +51,7 @@ type EmulatorStore interface {
 	AddValueToRegister(firstByte, secondByte byte)
 	SkipNextInstruction(firstByte, secondByte byte)
 	JumpPlusRegister(firstByte, secondByte byte)
+	CallAddress(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -62,6 +63,11 @@ func (c *Chip8) ClearScreen() {
 	for i := range c.Screen {
 		c.Screen[i] = c.SecondaryColor
 	}
+}
+
+func (c *Chip8) CallAddress(firstByte, secondByte byte) {
+	c.Stack = append(c.Stack, c.Pc)
+	c.Pc = get12BitValue(firstByte, secondByte)
 }
 
 // LoadRegister loads secondByte into register.
@@ -153,6 +159,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		}
 	case 0x1:
 		e.JumpToInstruction(firstByte, secondByte)
+	case 0x2:
+		e.CallAddress(firstByte, secondByte)
 	case 0x3:
 		e.SkipNextInstruction(firstByte, secondByte)
 	case 0x6:
@@ -166,7 +174,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0xd:
 		e.Draw(firstByte, secondByte)
 	default:
-		fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
+		// fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
+		panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 	}
 
 }

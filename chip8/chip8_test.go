@@ -258,6 +258,32 @@ func TestJumpToLocationPlusV0(t *testing.T) {
 	})
 }
 
+func TestCallAddress(t *testing.T) {
+	t.Run("instruction 0x2342 increments stack pointer, puts current pc onto the stack and sets pc to new address", func(t *testing.T) {
+		chip := NewChip8()
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x23, 0x42)
+
+		got := len(chip.Stack)
+		want := 1
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+
+		addressOnStack := chip.Stack[0]
+		wantedAddress := 0x200
+
+		AssertAddress(t, addressOnStack, uint16(wantedAddress))
+
+		pc := chip.Pc
+		wantedPc := 0x342
+
+		AssertAddress(t, pc, uint16(wantedPc))
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
