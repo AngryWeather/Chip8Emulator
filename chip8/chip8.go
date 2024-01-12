@@ -141,7 +141,7 @@ func (c *Chip8) AddValueToRegister(firstByte, secondByte byte) {
 	register := firstByte & 0xf
 	value := secondByte
 
-	c.Registers[register] = value
+	c.Registers[register] += value
 }
 
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
