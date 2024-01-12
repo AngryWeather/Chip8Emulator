@@ -211,9 +211,20 @@ func TestSkipNextInstruction(t *testing.T) {
 		got := chip.Pc
 		var want uint16 = 0x202
 
-		if got != want {
-			t.Errorf("got %x, want %x", got, want)
-		}
+		AssertAddress(t, got, want)
+	})
+
+	t.Run("instruction 0x3c00 doesn't increase the pc if value of register c != 00", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0xc] = 0x10
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x3c, 0x00)
+
+		got := chip.Pc
+		var want uint16 = 0x200
+
+		AssertAddress(t, got, want)
 	})
 }
 
