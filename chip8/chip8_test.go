@@ -186,18 +186,33 @@ func TestDrawInstruction(t *testing.T) {
 }
 
 func TestAddToRegister(t *testing.T) {
-	t.Run("Instruction 7004 adds 4 to 0 register", func(t *testing.T) {})
-	chip := NewChip8()
-	chip.Registers[0] = 0
-	emulator := Emulator{EmulatorStore: chip}
+	t.Run("Instruction 7004 adds 4 to 0 register", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0] = 0
+		emulator := Emulator{EmulatorStore: chip}
 
-	emulator.Emulate(0x70, 0x04)
-	got := chip.Registers[0]
-	var want byte = 0x4
+		emulator.Emulate(0x70, 0x04)
+		got := chip.Registers[0]
+		var want byte = 0x4
 
-	if got != want {
-		t.Errorf("got %x, want %x", got, want)
-	}
+		if got != want {
+			t.Errorf("got %x, want %x", got, want)
+		}
+	})
+	t.Run("Instruction 0x76ff adds ff to register 6", func(t *testing.T) {
+		chip := NewChip8()
+
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x76, 0xff)
+
+		got := chip.Registers[0x6]
+		var want byte = 0xff
+
+		if got != want {
+			t.Errorf("got %x, want %x", got, want)
+		}
+	})
 }
 
 func TestSkipNextInstruction(t *testing.T) {

@@ -138,10 +138,10 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 }
 
 func (c *Chip8) AddValueToRegister(firstByte, secondByte byte) {
-	register := c.Registers[firstByte&0xf]
+	register := firstByte & 0xf
 	value := secondByte
 
-	c.Registers[register] += value
+	c.Registers[register] = value
 }
 
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
