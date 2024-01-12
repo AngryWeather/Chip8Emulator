@@ -200,6 +200,23 @@ func TestAddToRegister(t *testing.T) {
 	}
 }
 
+func TestSkipNextInstruction(t *testing.T) {
+	t.Run("instruction 0x3c00 increments program counter by 2", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0xc] = 00
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x3c, 0x00)
+
+		got := chip.Pc
+		var want uint16 = 0x202
+
+		if got != want {
+			t.Errorf("got %x, want %x", got, want)
+		}
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
