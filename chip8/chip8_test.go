@@ -284,6 +284,20 @@ func TestCallAddress(t *testing.T) {
 	})
 }
 
+func TestSkipIfNotEquals(t *testing.T) {
+	t.Run("instruction 0x40ff skips increases pc if register 0 doesn't equal ff", func(t *testing.T) {
+		chip := NewChip8()
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x40, 0xff)
+
+		got := chip.Pc
+		var want uint16 = 0x202
+
+		AssertAddress(t, got, want)
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {

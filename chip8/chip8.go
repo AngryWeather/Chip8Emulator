@@ -52,6 +52,7 @@ type EmulatorStore interface {
 	SkipNextInstruction(firstByte, secondByte byte)
 	JumpPlusRegister(firstByte, secondByte byte)
 	CallAddress(firstByte, secondByte byte)
+	SkipIfNotEquals(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -68,6 +69,17 @@ func (c *Chip8) ClearScreen() {
 func (c *Chip8) CallAddress(firstByte, secondByte byte) {
 	c.Stack = append(c.Stack, c.Pc)
 	c.Pc = get12BitValue(firstByte, secondByte)
+}
+
+// SkipIfNotEquals increases the program counter by 2 if value in given register is different than secondByte.
+func (c *Chip8) SkipIfNotEquals(firstByte, secondByte byte) {
+	register := firstByte & 0xf
+	registerValue := c.Registers[register]
+	value := secondByte
+
+	if registerValue != value {
+		c.Pc += 2
+	}
 }
 
 // LoadRegister loads secondByte into register.
@@ -163,6 +175,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.CallAddress(firstByte, secondByte)
 	case 0x3:
 		e.SkipNextInstruction(firstByte, secondByte)
+	case 0x4:
+		e.SkipIfNotEquals(firstByte, secondByte)
 	case 0x6:
 		e.LoadRegister(firstByte, secondByte)
 	case 0x7:
