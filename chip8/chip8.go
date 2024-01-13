@@ -59,6 +59,7 @@ type EmulatorStore interface {
 	VxGetsVy(firstByte, secondByte byte)
 	LoadRegistersFromMemory(firstByte, secondByte byte)
 	VxOrVy(firstByte, secondByte byte)
+	VxAndVy(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -222,6 +223,14 @@ func (c *Chip8) VxOrVy(firstByte, secondByte byte) {
 	c.Registers[registerX] = value
 }
 
+// VxAndVy calculates result of Vx&Vy and stores the result in Vx.
+func (c *Chip8) VxAndVy(firstByte, secondByte byte) {
+	registerX := firstByte & 0xf
+
+	value := c.Registers[registerX] & c.Registers[secondByte>>4]
+	c.Registers[registerX] = value
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -252,6 +261,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 			e.VxGetsVy(firstByte, secondByte)
 		case 0x1:
 			e.VxOrVy(firstByte, secondByte)
+		case 0x2:
+			e.VxAndVy(firstByte, secondByte)
 		default:
 			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		}
