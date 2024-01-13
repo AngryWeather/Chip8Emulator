@@ -57,6 +57,7 @@ type EmulatorStore interface {
 	SkipNotEqualRegisters(firstByte, secondByte byte)
 	Return(firstByte, secondByte byte)
 	VxGetsVy(firstByte, secondByte byte)
+	LoadRegistersFromMemory(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -67,6 +68,15 @@ type Emulator struct {
 func (c *Chip8) ClearScreen() {
 	for i := range c.Screen {
 		c.Screen[i] = c.SecondaryColor
+	}
+}
+
+func (c *Chip8) LoadRegistersFromMemory(firstByte, secondByte byte) {
+	numOfRegisters := (firstByte & 0xf) + 1
+
+	for i := 0; i < int(numOfRegisters); i++ {
+		c.Registers[i] = c.Memory[c.I]
+		c.I += 1
 	}
 }
 
@@ -232,6 +242,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		switch secondByte & 0xf {
 		case 0x0:
 			e.VxGetsVy(firstByte, secondByte)
+		default:
+			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		}
 	case 0x9:
 		e.SkipNotEqualRegisters(firstByte, secondByte)
@@ -241,8 +253,13 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.JumpPlusRegister(firstByte, secondByte)
 	case 0xd:
 		e.Draw(firstByte, secondByte)
+	case 0xf:
+		switch secondByte {
+		case 0x65:
+			e.LoadRegistersFromMemory(firstByte, secondByte)
+		}
 	default:
-		// fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
+		fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
 		panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 	}
 

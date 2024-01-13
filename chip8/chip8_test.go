@@ -383,6 +383,25 @@ func TestVxGetsVy(t *testing.T) {
 	})
 }
 
+func TestLoadRegistersFromMemory(t *testing.T) {
+	t.Run("instruction 0xf165 loads registers 0 and 1 with values from memory starting at I", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Memory[0x0] = 0xf
+		chip.Memory[0x1] = 0xff
+		chip.I = 0x0
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0xf1, 0x65)
+
+		got := chip.Registers[:2]
+		want := []byte{0xf, 0xff}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
