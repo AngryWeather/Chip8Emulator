@@ -314,6 +314,35 @@ func TestSkipEqualRegisters(t *testing.T) {
 	})
 }
 
+func TestSkipNotEqualRegisters(t *testing.T) {
+	t.Run("instruction 0x9010 increases pc if register 0 != register 1", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 0
+		chip.Registers[0x1] = 1
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x90, 0x10)
+
+		got := chip.Pc
+		var want uint16 = 0x202
+
+		AssertAddress(t, got, want)
+
+	})
+
+	t.Run("instruction 0x9010 doesn't increase pc if values of registers are the same", func(t *testing.T) {
+		chip := NewChip8()
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x90, 0x10)
+
+		got := chip.Pc
+		var want uint16 = 0x200
+
+		AssertAddress(t, got, want)
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
