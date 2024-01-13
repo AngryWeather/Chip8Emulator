@@ -437,6 +437,24 @@ func TestVxAndVy(t *testing.T) {
 		}
 	})
 }
+
+func TestVxXorVy(t *testing.T) {
+	t.Run("instruction 0x8013 stores result of Vx&Vy in Vx", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 0xf  // 00001111
+		chip.Registers[0x1] = 0xf1 // 11110001
+
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0x80, 0x13)
+
+		got := chip.Registers[0x0]
+		var want byte = 0xfe // 11111110
+
+		if got != want {
+			t.Errorf("got %x, want %x", got, want)
+		}
+	})
+}
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
