@@ -56,6 +56,7 @@ type EmulatorStore interface {
 	SkipEqualRegisters(firstByte, secondByte byte)
 	SkipNotEqualRegisters(firstByte, secondByte byte)
 	Return(firstByte, secondByte byte)
+	VxGetsVy(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -133,6 +134,14 @@ func (c *Chip8) LoadIndexRegister(firstByte, secondByte byte) {
 	c.I = get12BitValue(firstByte, secondByte)
 }
 
+// VxGetsVy stores value of y register in x register.
+func (c *Chip8) VxGetsVy(firstByte, secondByte byte) {
+	registerX := firstByte & 0xf
+	registerY := secondByte >> 4
+	registerYValue := c.Registers[registerY]
+	c.Registers[registerX] = registerYValue
+}
+
 // JumpToInstruction sets the program counter to the new value.
 func (c *Chip8) JumpToInstruction(firstByte, secondByte byte) {
 	c.Pc = get12BitValue(firstByte, secondByte)
@@ -203,8 +212,6 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 			e.ClearScreen()
 		case 0xee:
 			e.Return(firstByte, secondByte)
-			// default:
-			// 	panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		}
 
 	case 0x1:
@@ -221,6 +228,11 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.LoadRegister(firstByte, secondByte)
 	case 0x7:
 		e.AddValueToRegister(firstByte, secondByte)
+	case 0x8:
+		switch secondByte & 0xf {
+		case 0x0:
+			e.VxGetsVy(firstByte, secondByte)
+		}
 	case 0x9:
 		e.SkipNotEqualRegisters(firstByte, secondByte)
 	case 0xa:

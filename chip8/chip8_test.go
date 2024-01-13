@@ -366,6 +366,23 @@ func TestReturn(t *testing.T) {
 	})
 }
 
+func TestVxGetsVy(t *testing.T) {
+	t.Run("instruction 0x8010 stores value of register 1 in register 0", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x1] = 0xf
+
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0x80, 0x10)
+
+		got := chip.Registers[0x0]
+		var want byte = 0xf
+
+		if got != want {
+			t.Errorf("got %x, want %x", got, want)
+		}
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
