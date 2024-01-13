@@ -55,6 +55,7 @@ type EmulatorStore interface {
 	SkipIfNotEquals(firstByte, secondByte byte)
 	SkipEqualRegisters(firstByte, secondByte byte)
 	SkipNotEqualRegisters(firstByte, secondByte byte)
+	Return(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -66,6 +67,13 @@ func (c *Chip8) ClearScreen() {
 	for i := range c.Screen {
 		c.Screen[i] = c.SecondaryColor
 	}
+}
+
+// Return pops address from the stack and puts it in the pc.
+func (c *Chip8) Return(firstByte, secondByte byte) {
+	address := c.Stack[len(c.Stack)-1]
+	c.Stack = c.Stack[:len(c.Stack)-1]
+	c.Pc = address
 }
 
 func (c *Chip8) CallAddress(firstByte, secondByte byte) {
@@ -193,7 +201,12 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		switch secondByte {
 		case 0xe0:
 			e.ClearScreen()
+		case 0xee:
+			e.Return(firstByte, secondByte)
+			// default:
+			// 	panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		}
+
 	case 0x1:
 		e.JumpToInstruction(firstByte, secondByte)
 	case 0x2:

@@ -343,6 +343,29 @@ func TestSkipNotEqualRegisters(t *testing.T) {
 	})
 }
 
+func TestReturn(t *testing.T) {
+	t.Run("instruction 00EE pops value off the stack and puts it in pc", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Stack = append(chip.Stack, 0x220)
+		emulator := Emulator{EmulatorStore: chip}
+
+		emulator.Emulate(0x00, 0xee)
+
+		got := len(chip.Stack)
+		want := 0
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+
+		pc := chip.Pc
+		wantedPc := 0x220
+
+		AssertAddress(t, pc, uint16(wantedPc))
+
+	})
+}
+
 func AssertAddress(t testing.TB, got, want uint16) {
 	t.Helper()
 	if got != want {
