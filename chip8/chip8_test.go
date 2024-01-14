@@ -492,6 +492,46 @@ func TestVxAddVy(t *testing.T) {
 	})
 }
 
+func TestVxSubVy(t *testing.T) {
+	t.Run("instruction 8015 sets Vf to 1 if V0 > V1 and sets Vx to Vx - Vy", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 0xff
+		chip.Registers[0x1] = 0xf
+
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0x80, 0x15)
+
+		got := chip.Registers[0x0]
+		var want byte = 0xf0
+
+		AssertBytes(t, got, want)
+
+		gotVf := chip.Registers[0xf]
+		var wantedVf byte = 0x1
+
+		AssertBytes(t, gotVf, wantedVf)
+	})
+
+	t.Run("instruction 0x8015 - set Vx to 0", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 0xf
+		chip.Registers[0x1] = 0xff
+
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0x80, 0x15)
+
+		got := chip.Registers[0x0]
+		var want byte = 0x10
+
+		AssertBytes(t, got, want)
+
+		gotVf := chip.Registers[0xf]
+		var wantedVf byte = 0x0
+
+		AssertBytes(t, gotVf, wantedVf)
+	})
+}
+
 func AssertBytes(t testing.TB, got, want byte) {
 	t.Helper()
 	if got != want {

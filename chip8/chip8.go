@@ -62,6 +62,7 @@ type EmulatorStore interface {
 	VxAndVy(firstByte, secondByte byte)
 	VxXorVy(firstByte, secondByte byte)
 	VxAddVy(firstByte, secondByte byte)
+	VxSubVy(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -257,6 +258,20 @@ func (c *Chip8) VxAddVy(firstByte, secondByte byte) {
 	c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
 }
 
+// VxSubVy sets Vf to 1 if Vx > Vy, stores result of Vx - Vy in Vx.
+func (c *Chip8) VxSubVy(firstByte, secondByte byte) {
+	registerX := firstByte & 0xf
+	registerY := secondByte >> 4
+
+	c.Registers[registerX] = c.Registers[registerX] - c.Registers[registerY]
+
+	if c.Registers[registerX] > c.Registers[registerY] {
+		c.Registers[0xf] = 1
+	} else {
+		c.Registers[0xf] = 0
+	}
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -293,8 +308,10 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 			e.VxXorVy(firstByte, secondByte)
 		case 0x4:
 			e.VxAddVy(firstByte, secondByte)
-		default:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		case 0x5:
+			e.VxSubVy(firstByte, secondByte)
+			// default:
+			// 	panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		}
 	case 0x9:
 		e.SkipNotEqualRegisters(firstByte, secondByte)
@@ -311,7 +328,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		}
 	default:
 		fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
-		panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		// panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 	}
 
 }
