@@ -64,6 +64,7 @@ type EmulatorStore interface {
 	VxAddVy(firstByte, secondByte byte)
 	VxSubVy(firstByte, secondByte byte)
 	VySubVx(firstByte, secondByte byte)
+	VxRightShift(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -287,6 +288,21 @@ func (c *Chip8) VySubVx(firstByte, secondByte byte) {
 	}
 }
 
+// VxRightShift sets Vf to 1 if the least significant bit of Vx is 1 and divides Vx by 2.
+func (c *Chip8) VxRightShift(firstByte, secondByte byte) {
+	registerX := firstByte & 0xf
+
+	// find least significant bit and check if it's 1
+	if c.Registers[registerX]&0x1 == 1 {
+		c.Registers[0xf] = 1
+	} else {
+		c.Registers[0xf] = 0
+	}
+
+	// right shift by 1 to divide by 2
+	c.Registers[registerX] = c.Registers[registerX] >> 1
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -325,6 +341,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 			e.VxAddVy(firstByte, secondByte)
 		case 0x5:
 			e.VxSubVy(firstByte, secondByte)
+		case 0x6:
+			e.VxRightShift(firstByte, secondByte)
 		case 0x7:
 			e.VySubVx(firstByte, secondByte)
 		default:
