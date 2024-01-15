@@ -224,15 +224,22 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 
 		// check each bit in the current byte
 		for j := 0; j < 8; j++ {
-			pixel := currentByte >> 7 & 0x1
-			if pixel == 1 {
-				color = c.PrimaryColor
-			} else {
-				color = c.SecondaryColor
-			}
-
 			// position in 1D array is based on x, y and width
 			var position int = int(x) + (int(y) * int(c.Width))
+			pixel := currentByte >> 7 & 0x1
+
+			// pixels are xored (^) onto the screen but xor is not defined for color.RGBA
+			if pixel == 1 && c.Screen[position] == c.PrimaryColor {
+				color = c.SecondaryColor
+				c.Registers[0xf] = 1
+			} else if (pixel == 1 && c.Screen[position] == c.SecondaryColor) || (pixel == 0 && c.Screen[position] == c.PrimaryColor) {
+				color = c.PrimaryColor
+				c.Registers[0xf] = 0
+			} else {
+				color = c.SecondaryColor
+				c.Registers[0xf] = 0
+			}
+
 			c.Screen[position] = color
 
 			// shift byte to access next bit from left
@@ -363,7 +370,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0x1:
 		e.JumpToInstruction(firstByte, secondByte)
 	case 0x2:
-		// e.CallAddress(firstByte, secondByte)
+		e.CallAddress(firstByte, secondByte)
 	case 0x3:
 		e.SkipNextInstruction(firstByte, secondByte)
 	case 0x4:

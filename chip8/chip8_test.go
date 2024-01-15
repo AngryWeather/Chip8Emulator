@@ -92,11 +92,14 @@ func TestDrawInstruction(t *testing.T) {
 	t.Run("Instruction 0xd001 changes screen", func(t *testing.T) {
 		chip8 := &Chip8{}
 		chip8.Memory = []byte{0, 0xff}
-		chip8.Registers = []byte{0, 0, 0}
+		chip8.Registers = make([]byte, 16)
 		chip8.Registers[0x0] = 0
 		chip8.PrimaryColor = rl.White
 		chip8.SecondaryColor = rl.Black
 		chip8.Screen = make([]color.RGBA, 8)
+		for i := range chip8.Screen {
+			chip8.Screen[i] = rl.Black
+		}
 		chip8.Width = 8
 		chip8.I = 0x1
 		emulator := Emulator{EmulatorStore: chip8}
@@ -131,7 +134,7 @@ func TestDrawInstruction(t *testing.T) {
 			chip8.Screen[i] = rl.Black
 		}
 		chip8.Memory = []byte{0, 0xff, 0x0f}
-		chip8.Registers = []byte{0, 0, 0}
+		chip8.Registers = make([]byte, 16)
 		chip8.Registers[0x0] = 0
 		chip8.I = 0x1
 		emulator := Emulator{EmulatorStore: chip8}
@@ -162,7 +165,8 @@ func TestDrawInstruction(t *testing.T) {
 			chip8.Screen[i] = rl.Black
 		}
 		chip8.Memory = []byte{0, 0xff, 0x00}
-		chip8.Registers = []byte{0, 0x4, 0}
+		chip8.Registers = make([]byte, 16)
+		chip8.Registers[0x1] = 0x4
 
 		chip8.I = 0x1
 		emulator := Emulator{EmulatorStore: chip8}
@@ -182,6 +186,42 @@ func TestDrawInstruction(t *testing.T) {
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("got %v, want %v", got, want)
 		}
+	})
+	t.Run("instruction 0xd001 - if white on white should turn pixel black and set Vf to 1", func(t *testing.T) {
+		chip8 := &Chip8{}
+		chip8.Width = 64
+		chip8.Height = 6
+		chip8.PrimaryColor = rl.White
+		chip8.SecondaryColor = rl.Black
+		chip8.Screen = make([]color.RGBA, 64*6)
+		for i := range chip8.Screen {
+			chip8.Screen[i] = rl.White
+		}
+		chip8.Memory = []byte{0, 0xff, 0x00}
+		chip8.Registers = make([]byte, 16)
+
+		chip8.I = 0x1
+		emulator := Emulator{EmulatorStore: chip8}
+
+		emulator.Emulate(0xd0, 0x11)
+
+		got := chip8.Screen
+		want := []color.RGBA{
+			rl.Black, rl.Black, rl.Black, rl.Black, rl.Black, rl.Black, rl.Black, rl.Black, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White,
+			rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White,
+			rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White,
+			rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White,
+			rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White,
+			rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White, rl.White,
+		}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %v, want %v", got, want)
+		}
+
+		gotVf := chip8.Registers[0xf]
+		var wantedVf byte = 0x1
+		AssertBytes(t, gotVf, wantedVf)
 	})
 }
 
