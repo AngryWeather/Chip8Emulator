@@ -67,6 +67,7 @@ type EmulatorStore interface {
 	VySubVx(firstByte, secondByte byte)
 	VxRightShift(firstByte, secondByte byte)
 	VxLeftShift(firstByte, secondByte byte)
+	StoreBCDRepresentationInMemory(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -77,6 +78,20 @@ type Emulator struct {
 func (c *Chip8) ClearScreen() {
 	for i := range c.Screen {
 		c.Screen[i] = c.SecondaryColor
+	}
+}
+
+// StoreBCDRepresentationInMemory stores decimal number in Vx in Memory (Memory[i] = hundreds digit, Memory[i+1] = tens digit, Memory[i+2] = ones digit).
+func (c *Chip8) StoreBCDRepresentationInMemory(firstByte, secondByte byte) {
+	registerX := firstByte & 0xf
+	valueRegisterX := c.Registers[registerX]
+
+	var i int = 0
+	for i = int(c.I + 2); i >= int(c.I); i-- {
+		// get last digit from valueRegisterX
+		c.Memory[i] = valueRegisterX % 10
+		// divide to get the next digit from the right
+		valueRegisterX /= 10
 	}
 }
 
@@ -342,7 +357,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0x1:
 		e.JumpToInstruction(firstByte, secondByte)
 	case 0x2:
-		// e.CallAddress(firstByte, secondByte)
+		e.CallAddress(firstByte, secondByte)
 	case 0x3:
 		e.SkipNextInstruction(firstByte, secondByte)
 	case 0x4:
@@ -389,6 +404,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		case 0x55:
 			e.LoadRegistersToMemory(firstByte, secondByte)
 		case 0x33:
+			e.StoreBCDRepresentationInMemory(firstByte, secondByte)
 		case 0x1e:
 		}
 	default:
