@@ -65,6 +65,7 @@ type EmulatorStore interface {
 	VxSubVy(firstByte, secondByte byte)
 	VySubVx(firstByte, secondByte byte)
 	VxRightShift(firstByte, secondByte byte)
+	VxLeftShift(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -303,6 +304,19 @@ func (c *Chip8) VxRightShift(firstByte, secondByte byte) {
 	c.Registers[registerX] = c.Registers[registerX] >> 1
 }
 
+// VxLeftShift sets Vf to 1 if the most significant bit of Vx is 1 and multiplies Vx by 2.
+func (c *Chip8) VxLeftShift(firstByte, secondByte byte) {
+	registerX := firstByte & 0xf
+
+	// find most significant bit and check if it's 1
+	if (c.Registers[registerX]&0x80)>>7 == 1 {
+		c.Registers[0xf] = 1
+	}
+
+	// left shift by 1 to multiply by 2
+	c.Registers[registerX] = c.Registers[registerX] << 1
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -345,8 +359,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 			e.VxRightShift(firstByte, secondByte)
 		case 0x7:
 			e.VySubVx(firstByte, secondByte)
-		default:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		case 0xe:
+			e.VxLeftShift(firstByte, secondByte)
 		}
 	case 0x9:
 		e.SkipNotEqualRegisters(firstByte, secondByte)
@@ -360,6 +374,9 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		switch secondByte {
 		case 0x65:
 			e.LoadRegistersFromMemory(firstByte, secondByte)
+		case 0x55:
+		case 0x33:
+		case 0x1e:
 		}
 	default:
 		fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
