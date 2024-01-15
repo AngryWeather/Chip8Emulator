@@ -68,6 +68,7 @@ type EmulatorStore interface {
 	VxRightShift(firstByte, secondByte byte)
 	VxLeftShift(firstByte, secondByte byte)
 	StoreBCDRepresentationInMemory(firstByte, secondByte byte)
+	StoreValueOfVxPlusIInI(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -93,6 +94,11 @@ func (c *Chip8) StoreBCDRepresentationInMemory(firstByte, secondByte byte) {
 		// divide to get the next digit from the right
 		valueRegisterX /= 10
 	}
+}
+
+// StoreValueOfVxPlusIInI adds values of index register and Vx and stores the result in index register I.
+func (c *Chip8) StoreValueOfVxPlusIInI(firstByte, secondByte byte) {
+	c.I = c.I + uint16(c.Registers[firstByte&0xf])
 }
 
 // LoadRegistersFromMemory loads x registers from memory starting at index register (I).
@@ -357,7 +363,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0x1:
 		e.JumpToInstruction(firstByte, secondByte)
 	case 0x2:
-		e.CallAddress(firstByte, secondByte)
+		// e.CallAddress(firstByte, secondByte)
 	case 0x3:
 		e.SkipNextInstruction(firstByte, secondByte)
 	case 0x4:
@@ -406,6 +412,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		case 0x33:
 			e.StoreBCDRepresentationInMemory(firstByte, secondByte)
 		case 0x1e:
+			e.StoreValueOfVxPlusIInI(firstByte, secondByte)
 		}
 	default:
 		fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))

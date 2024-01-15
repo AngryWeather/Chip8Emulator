@@ -647,6 +647,22 @@ func TestStoreBCDRepresentationInMemory(t *testing.T) {
 	})
 }
 
+func TestStoreValueOfVxPlusIInI(t *testing.T) {
+	t.Run("instruction f01e with V0=0x1 and I=0x3 stores V0+I in I", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 0x1
+		chip.I = 0x3
+
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0xf0, 0x1e)
+
+		got := chip.I
+		var want uint16 = 0x4
+
+		AssertAddress(t, got, want)
+	})
+}
+
 func AssertBytes(t testing.TB, got, want byte) {
 	t.Helper()
 	if got != want {
