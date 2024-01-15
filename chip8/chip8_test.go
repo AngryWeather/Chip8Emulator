@@ -611,6 +611,24 @@ func TestVxLeftShift(t *testing.T) {
 	})
 }
 
+func TestLoadRegistersToMemory(t *testing.T) {
+	t.Run("instruction 0xf155 loads values of registers 0 and 1 to memory at I", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers = []byte{0xff, 0xf}
+		chip.Memory = []byte{0x0, 0x0}
+
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0xf1, 0x55)
+
+		got := chip.Memory
+		want := []byte{0xff, 0xf}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+}
+
 func AssertBytes(t testing.TB, got, want byte) {
 	t.Helper()
 	if got != want {

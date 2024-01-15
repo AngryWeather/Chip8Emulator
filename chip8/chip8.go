@@ -58,6 +58,7 @@ type EmulatorStore interface {
 	Return(firstByte, secondByte byte)
 	VxGetsVy(firstByte, secondByte byte)
 	LoadRegistersFromMemory(firstByte, secondByte byte)
+	LoadRegistersToMemory(firstByte, secondByte byte)
 	VxOrVy(firstByte, secondByte byte)
 	VxAndVy(firstByte, secondByte byte)
 	VxXorVy(firstByte, secondByte byte)
@@ -79,11 +80,22 @@ func (c *Chip8) ClearScreen() {
 	}
 }
 
+// LoadRegistersFromMemory loads x registers from memory starting at index register (I).
 func (c *Chip8) LoadRegistersFromMemory(firstByte, secondByte byte) {
 	numOfRegisters := (firstByte & 0xf) + 1
 
 	for i := 0; i < int(numOfRegisters); i++ {
 		c.Registers[i] = c.Memory[c.I]
+		c.I += 1
+	}
+}
+
+// LoadRegistersToMemory loads x registers to memory starting at index register I.
+func (c *Chip8) LoadRegistersToMemory(firstByte, secondByte byte) {
+	numOfRegisters := (firstByte & 0xf) + 1
+
+	for i := 0; i < int(numOfRegisters); i++ {
+		c.Memory[c.I] = c.Registers[i]
 		c.I += 1
 	}
 }
@@ -330,7 +342,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0x1:
 		e.JumpToInstruction(firstByte, secondByte)
 	case 0x2:
-		e.CallAddress(firstByte, secondByte)
+		// e.CallAddress(firstByte, secondByte)
 	case 0x3:
 		e.SkipNextInstruction(firstByte, secondByte)
 	case 0x4:
@@ -375,6 +387,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		case 0x65:
 			e.LoadRegistersFromMemory(firstByte, secondByte)
 		case 0x55:
+			e.LoadRegistersToMemory(firstByte, secondByte)
 		case 0x33:
 		case 0x1e:
 		}
