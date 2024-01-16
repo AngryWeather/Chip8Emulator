@@ -299,6 +299,9 @@ func (c *Chip8) VxXorVy(firstByte, secondByte byte) {
 func (c *Chip8) VxAddVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 	registerY := secondByte >> 4
+
+	c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
+
 	var xOverflow int = int(c.Registers[registerX])
 	var yOverflow int = int(c.Registers[registerY])
 
@@ -308,7 +311,6 @@ func (c *Chip8) VxAddVy(firstByte, secondByte byte) {
 		c.Registers[0xf] = 0
 	}
 
-	c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
 }
 
 // VxSubVy sets Vf to 1 if Vx > Vy, stores result of Vx - Vy in Vx.

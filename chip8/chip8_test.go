@@ -259,7 +259,7 @@ func TestAddToRegister(t *testing.T) {
 func TestSkipNextInstruction(t *testing.T) {
 	t.Run("instruction 0x3c00 increments program counter by 2", func(t *testing.T) {
 		chip := NewChip8()
-		chip.Registers[0xc] = 00
+		chip.Registers[0xc] = 0
 		emulator := Emulator{EmulatorStore: chip}
 
 		emulator.Emulate(0x3c, 0x00)
@@ -514,7 +514,7 @@ func TestVxAddVy(t *testing.T) {
 
 		AssertBytes(t, gotVf, wantedVf)
 	})
-	t.Run("instruction 0x8014 sets vf to 1 on overflow", func(t *testing.T) {
+	t.Run("instruction 0x8014 sets vf to 0", func(t *testing.T) {
 		chip := NewChip8()
 		chip.Registers[0x0] = 0xff
 		chip.Registers[0x1] = 1
@@ -523,6 +523,23 @@ func TestVxAddVy(t *testing.T) {
 
 		got := chip.Registers[0x0]
 		var want byte = 0x0
+
+		AssertBytes(t, got, want)
+
+		gotVf := chip.Registers[0xf]
+		var wantedVf byte = 0x0
+
+		AssertBytes(t, gotVf, wantedVf)
+	})
+	t.Run("instruction 0x8014 - set Vf to 1 on overflow", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 0x0
+		chip.Registers[0x1] = 0xff
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0x80, 0x14)
+
+		got := chip.Registers[0x0]
+		var want byte = 0xff
 
 		AssertBytes(t, got, want)
 
