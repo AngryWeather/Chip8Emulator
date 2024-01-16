@@ -56,7 +56,6 @@ func main() {
 		}
 		firstByte := chip.Memory[chip.Pc]
 		secondByte := chip.Memory[chip.Pc+1]
-		fmt.Printf("%x%x\n", firstByte, secondByte)
 		emulator.Emulate(firstByte, secondByte)
 
 		if (firstByte == 0x00 && secondByte == 0xe0) || (firstByte>>4 == 0xd) {
@@ -65,9 +64,13 @@ func main() {
 			rl.UpdateTexture(chip.Texture, chip.Screen)
 			rl.EndTextureMode()
 		}
-		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0, float32(target.Texture.Width), float32(-target.Texture.Height)), rl.NewRectangle(0, 0, float32(width), float32(height)), rl.NewVector2(0, 0), 0, rl.White)
-		chip.Pc += 2
 
+		// these instructions should not increase pc
+		if firstByte>>4 != 0x1 && firstByte>>4 != 0x2 {
+			chip.Pc += 2
+		}
+
+		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0, float32(target.Texture.Width), float32(-target.Texture.Height)), rl.NewRectangle(0, 0, float32(width), float32(height)), rl.NewVector2(0, 0), 0, rl.White)
 		rl.EndDrawing()
 	}
 	rl.UnloadTexture(t)

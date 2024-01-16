@@ -131,7 +131,6 @@ func (c *Chip8) Return(firstByte, secondByte byte) {
 func (c *Chip8) CallAddress(firstByte, secondByte byte) {
 	c.Stack = append(c.Stack, c.Pc)
 	c.Pc = get12BitValue(firstByte, secondByte)
-	c.Pc -= 2
 }
 
 // SkipEqualRegisters compares values of two registers and increases pc if they're equal.
@@ -197,7 +196,6 @@ func (c *Chip8) VxGetsVy(firstByte, secondByte byte) {
 // JumpToInstruction sets the program counter to the new value.
 func (c *Chip8) JumpToInstruction(firstByte, secondByte byte) {
 	c.Pc = get12BitValue(firstByte, secondByte)
-	c.Pc -= 2
 }
 
 // SkipNextInstruction increases the program counter if value of the register is equal to secondByte.
@@ -213,7 +211,6 @@ func (c *Chip8) SkipNextInstruction(firstByte, secondByte byte) {
 func (c *Chip8) JumpPlusRegister(firstByte, secondByte byte) {
 	register := c.Registers[0x0]
 	c.Pc = get12BitValue(firstByte, secondByte) + uint16(register)
-	c.Pc -= 2
 }
 
 func (c *Chip8) Draw(firstByte, secondByte byte) {

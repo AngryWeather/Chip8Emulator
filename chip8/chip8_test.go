@@ -101,6 +101,7 @@ func TestDrawInstruction(t *testing.T) {
 			chip8.Screen[i] = rl.Black
 		}
 		chip8.Width = 8
+		chip8.Height = 1
 		chip8.I = 0x1
 		emulator := Emulator{EmulatorStore: chip8}
 
