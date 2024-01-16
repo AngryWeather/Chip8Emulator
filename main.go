@@ -47,7 +47,10 @@ func main() {
 	rl.UnloadImage(&checked)
 	rl.SetTargetFPS(60)
 
+	target := rl.LoadRenderTexture(width, height)
+
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
+		rl.BeginDrawing()
 		if rl.WindowShouldClose() {
 			rl.CloseWindow()
 		}
@@ -57,13 +60,18 @@ func main() {
 		emulator.Emulate(firstByte, secondByte)
 
 		if (firstByte == 0x00 && secondByte == 0xe0) || (firstByte>>4 == 0xd) {
-			rl.BeginDrawing()
+			rl.BeginTextureMode(target)
 			rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
 			rl.UpdateTexture(chip.Texture, chip.Screen)
-			rl.EndDrawing()
+			rl.EndTextureMode()
 		}
+		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0, float32(target.Texture.Width), float32(-target.Texture.Height)), rl.NewRectangle(0, 0, float32(width), float32(height)), rl.NewVector2(0, 0), 0, rl.White)
 		chip.Pc += 2
+
+		rl.EndDrawing()
 	}
+	rl.UnloadTexture(t)
+	rl.UnloadRenderTexture(target)
 }
 
 func readFileToBuffer(filename string) []byte {
