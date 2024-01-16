@@ -45,10 +45,12 @@ func main() {
 	t := rl.LoadTextureFromImage(&checked)
 	chip.Texture = t
 	rl.UnloadImage(&checked)
-
 	rl.SetTargetFPS(60)
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
+		if rl.WindowShouldClose() {
+			rl.CloseWindow()
+		}
 		firstByte := chip.Memory[chip.Pc]
 		secondByte := chip.Memory[chip.Pc+1]
 		fmt.Printf("%x%x\n", firstByte, secondByte)
