@@ -48,29 +48,20 @@ func main() {
 
 	rl.SetTargetFPS(60)
 
-	for !rl.WindowShouldClose() {
-		rl.BeginDrawing()
+	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
+		firstByte := chip.Memory[chip.Pc]
+		secondByte := chip.Memory[chip.Pc+1]
+		fmt.Printf("%x%x\n", firstByte, secondByte)
+		emulator.Emulate(firstByte, secondByte)
 
-		rl.ClearBackground(rl.Black)
-		rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
-
-		for chip.Pc < uint16(len(program)+0x200) {
-			firstByte := chip.Memory[chip.Pc]
-			secondByte := chip.Memory[chip.Pc+1]
-			fmt.Printf("%x%x\n", firstByte, secondByte)
-			emulator.Emulate(firstByte, secondByte)
-
-			if firstByte == 0x00 && secondByte == 0xe0 {
-				rl.UpdateTexture(chip.Texture, chip.Screen)
-			}
-			if firstByte>>4 == 0xd {
-				rl.UpdateTexture(t, chip.Screen)
-			}
-			chip.Pc += 2
+		if (firstByte == 0x00 && secondByte == 0xe0) || (firstByte>>4 == 0xd) {
+			rl.BeginDrawing()
+			rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
+			rl.UpdateTexture(chip.Texture, chip.Screen)
+			rl.EndDrawing()
 		}
-		rl.EndDrawing()
+		chip.Pc += 2
 	}
-
 }
 
 func readFileToBuffer(filename string) []byte {

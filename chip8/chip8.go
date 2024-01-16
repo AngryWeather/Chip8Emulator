@@ -28,7 +28,7 @@ func NewChip8() *Chip8 {
 		Memory:         make([]byte, 4096),
 		Registers:      make([]byte, 16),
 		Timers:         make([]byte, 2),
-		Stack:          make([]uint16, 0, 16),
+		Stack:          make([]uint16, 0, 48),
 		Screen:         make([]color.RGBA, 64*32),
 		Width:          64,
 		Height:         32,
@@ -131,6 +131,7 @@ func (c *Chip8) Return(firstByte, secondByte byte) {
 func (c *Chip8) CallAddress(firstByte, secondByte byte) {
 	c.Stack = append(c.Stack, c.Pc)
 	c.Pc = get12BitValue(firstByte, secondByte)
+	c.Pc -= 2
 }
 
 // SkipEqualRegisters compares values of two registers and increases pc if they're equal.
@@ -196,6 +197,7 @@ func (c *Chip8) VxGetsVy(firstByte, secondByte byte) {
 // JumpToInstruction sets the program counter to the new value.
 func (c *Chip8) JumpToInstruction(firstByte, secondByte byte) {
 	c.Pc = get12BitValue(firstByte, secondByte)
+	c.Pc -= 2
 }
 
 // SkipNextInstruction increases the program counter if value of the register is equal to secondByte.
@@ -211,12 +213,13 @@ func (c *Chip8) SkipNextInstruction(firstByte, secondByte byte) {
 func (c *Chip8) JumpPlusRegister(firstByte, secondByte byte) {
 	register := c.Registers[0x0]
 	c.Pc = get12BitValue(firstByte, secondByte) + uint16(register)
+	c.Pc -= 2
 }
 
 func (c *Chip8) Draw(firstByte, secondByte byte) {
 	bytesToRead := secondByte & 0xf
-	x := c.Registers[firstByte&0xf]
-	y := c.Registers[secondByte>>4]
+	x := c.Registers[firstByte&0xf] % c.Width
+	y := c.Registers[secondByte>>4] % c.Height
 
 	for i := c.I; i < (uint16(bytesToRead) + c.I); i++ {
 		var currentByte byte = c.Memory[i]
@@ -224,9 +227,12 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 
 		// check each bit in the current byte
 		for j := 0; j < 8; j++ {
+			pixel := currentByte >> 7
+			// shift byte to access next bit from left
+			currentByte = currentByte << 1
+
 			// position in 1D array is based on x, y and width
 			var position int = int(x) + (int(y) * int(c.Width))
-			pixel := currentByte >> 7 & 0x1
 
 			// pixels are xored (^) onto the screen but xor is not defined for color.RGBA
 			if pixel == 1 && c.Screen[position] == c.PrimaryColor {
@@ -242,15 +248,22 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 
 			c.Screen[position] = color
 
-			// shift byte to access next bit from left
-			currentByte = currentByte << 1
 			// increase x to draw in the next x coordinate
 			x += 1
+			if x > 63 {
+				break
+			}
 		}
-		// increase y to move down
-		y += 1
 		// reset x
-		x = c.Registers[firstByte&0xf]
+		x = c.Registers[firstByte&0xf] % c.Width
+		// increase y to move down
+		if y > 31 {
+			break
+		}
+		y += 1
+		if y > 31 {
+			break
+		}
 
 	}
 }
@@ -408,22 +421,35 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.LoadIndexRegister(firstByte, secondByte)
 	case 0xb:
 		e.JumpPlusRegister(firstByte, secondByte)
+	case 0xc:
+		panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 	case 0xd:
 		e.Draw(firstByte, secondByte)
+	case 0xe:
+		switch secondByte {
+		case 0x93:
+			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		case 0xa1:
+			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		}
 	case 0xf:
 		switch secondByte {
-		case 0x65:
-			e.LoadRegistersFromMemory(firstByte, secondByte)
-		case 0x55:
-			e.LoadRegistersToMemory(firstByte, secondByte)
-		case 0x33:
-			e.StoreBCDRepresentationInMemory(firstByte, secondByte)
+		case 0x07:
+			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		case 0x0a:
+			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		case 0x15:
+			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		case 0x18:
+			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		case 0x1e:
 			e.StoreValueOfVxPlusIInI(firstByte, secondByte)
+		case 0x33:
+			e.StoreBCDRepresentationInMemory(firstByte, secondByte)
+		case 0x55:
+			e.LoadRegistersToMemory(firstByte, secondByte)
+		case 0x65:
+			e.LoadRegistersFromMemory(firstByte, secondByte)
 		}
-	default:
-		fmt.Printf("Instruction %x not implemented\n", uint16(firstByte)<<8|uint16(secondByte))
-		// panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 	}
-
 }
