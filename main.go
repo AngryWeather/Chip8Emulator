@@ -51,33 +51,34 @@ func main() {
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
 		rl.BeginDrawing()
-		if rl.WindowShouldClose() {
-			rl.CloseWindow()
-		}
-		firstByte := chip.Memory[chip.Pc]
-		secondByte := chip.Memory[chip.Pc+1]
-		emulator.Emulate(firstByte, secondByte)
+		for i := 0; i < 10; i++ {
+			if rl.WindowShouldClose() {
+				rl.CloseWindow()
+			}
+			firstByte := chip.Memory[chip.Pc]
+			secondByte := chip.Memory[chip.Pc+1]
+			emulator.Emulate(firstByte, secondByte)
 
-		if (firstByte == 0x00 && secondByte == 0xe0) || (firstByte>>4 == 0xd) {
-			rl.BeginTextureMode(target)
-			rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
-			rl.UpdateTexture(chip.Texture, chip.Screen)
-			rl.EndTextureMode()
-		}
+			if (firstByte == 0x00 && secondByte == 0xe0) || (firstByte>>4 == 0xd) {
+				rl.BeginTextureMode(target)
+				rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
+				rl.UpdateTexture(chip.Texture, chip.Screen)
+				rl.EndTextureMode()
+			}
 
-		// these instructions should not increase pc
-		if firstByte>>4 != 0x1 && firstByte>>4 != 0x2 {
-			chip.Pc += 2
-		}
+			// these instructions should not increase pc
+			if firstByte>>4 != 0x1 && firstByte>>4 != 0x2 {
+				chip.Pc += 2
+			}
 
+			if chip.Timers[0] > 0 {
+				chip.Timers[0] -= 1
+			} else {
+				chip.Timers[0] = 0
+			}
+		}
 		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0, float32(target.Texture.Width), float32(-target.Texture.Height)), rl.NewRectangle(0, 0, float32(width), float32(height)), rl.NewVector2(0, 0), 0, rl.White)
 		rl.EndDrawing()
-
-		if chip.Timers[0] > 0 {
-			chip.Timers[0] -= 1
-		} else {
-			chip.Timers[0] = 0
-		}
 	}
 	rl.UnloadTexture(t)
 	rl.UnloadRenderTexture(target)

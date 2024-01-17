@@ -408,7 +408,6 @@ func (c *Chip8) PutTimerInRegister(firstByte byte) {
 
 func (c *Chip8) SkipKeyNotPressed(firstByte byte) {
 	targetKey := c.Registers[firstByte&0xf]
-	fmt.Printf("Key UP: %d\n", targetKey)
 	if rl.IsKeyUp(keymap[targetKey]) {
 		c.Pc += 2
 	}
@@ -416,7 +415,6 @@ func (c *Chip8) SkipKeyNotPressed(firstByte byte) {
 
 func (c *Chip8) SkipKeyPressed(firstByte byte) {
 	targetKey := c.Registers[firstByte&0xf]
-	fmt.Printf("Key DOWN: %d\n", targetKey)
 	if rl.IsKeyDown(keymap[targetKey]) {
 		c.Pc += 2
 	}
