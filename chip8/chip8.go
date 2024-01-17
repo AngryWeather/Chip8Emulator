@@ -3,6 +3,7 @@ package chip8
 import (
 	"fmt"
 	"image/color"
+	"math/rand"
 
 	"os"
 
@@ -76,6 +77,7 @@ type EmulatorStore interface {
 	SkipKeyPressed(firstByte byte)
 	PutTimerInRegister(firstByte byte)
 	WaitForKeyPress(firstByte byte)
+	SetRandomNumber(firstByte, secondByte byte)
 }
 
 type Emulator struct {
@@ -99,6 +101,11 @@ var keymap = map[byte]int32{
 	0x0: rl.KeyX,
 	0xb: rl.KeyC,
 	0xf: rl.KeyV,
+}
+
+func (c *Chip8) SetRandomNumber(firstByte, secondByte byte) {
+	randNumber := rand.Intn(256)
+	c.Registers[firstByte&0xf] = byte(randNumber) & secondByte
 }
 
 // ClearScreen clears the screen by setting all pixels to 0.
@@ -486,7 +493,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0xb:
 		e.JumpPlusRegister(firstByte, secondByte)
 	case 0xc:
-		panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		e.SetRandomNumber(firstByte, secondByte)
 	case 0xd:
 		e.Draw(firstByte, secondByte)
 	case 0xe:
@@ -499,7 +506,6 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	case 0xf:
 		switch secondByte {
 		case 0x07:
-			// panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 			e.PutTimerInRegister(firstByte)
 		case 0x0a:
 			e.WaitForKeyPress(firstByte)
