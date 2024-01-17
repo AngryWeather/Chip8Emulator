@@ -300,10 +300,9 @@ func (c *Chip8) VxAddVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 	registerY := secondByte >> 4
 
-	c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
-
 	var xOverflow int = int(c.Registers[registerX])
 	var yOverflow int = int(c.Registers[registerY])
+	c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
 
 	if xOverflow+yOverflow > 255 {
 		c.Registers[0xf] = 1
@@ -318,11 +317,14 @@ func (c *Chip8) VxSubVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 	registerY := secondByte >> 4
 
+	var xOverflow int = int(c.Registers[registerX])
+	var yOverflow int = int(c.Registers[registerY])
 	c.Registers[registerX] = c.Registers[registerX] - c.Registers[registerY]
 
-	if c.Registers[registerX] > c.Registers[registerY] {
+	if xOverflow >= yOverflow {
 		c.Registers[0xf] = 1
-	} else {
+		// y > x sets Vf to 0 because of borrowing value
+	} else if xOverflow < yOverflow {
 		c.Registers[0xf] = 0
 	}
 }
@@ -346,12 +348,7 @@ func (c *Chip8) VxRightShift(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
 	// find least significant bit and check if it's 1
-	if c.Registers[registerX]&0x1 == 1 {
-		c.Registers[0xf] = 1
-	} else {
-		c.Registers[0xf] = 0
-	}
-
+	c.Registers[0xf] = c.Registers[registerX] & 0x1
 	// right shift by 1 to divide by 2
 	c.Registers[registerX] = c.Registers[registerX] >> 1
 }
@@ -361,12 +358,10 @@ func (c *Chip8) VxLeftShift(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
 	// find most significant bit and check if it's 1
-	if (c.Registers[registerX]&0x80)>>7 == 1 {
-		c.Registers[0xf] = 1
-	}
-
+	c.Registers[0xf] = c.Registers[registerX] >> 7
 	// left shift by 1 to multiply by 2
 	c.Registers[registerX] = c.Registers[registerX] << 1
+
 }
 
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
