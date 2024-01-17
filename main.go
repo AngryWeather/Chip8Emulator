@@ -72,6 +72,12 @@ func main() {
 
 		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0, float32(target.Texture.Width), float32(-target.Texture.Height)), rl.NewRectangle(0, 0, float32(width), float32(height)), rl.NewVector2(0, 0), 0, rl.White)
 		rl.EndDrawing()
+
+		if chip.Timers[0] > 0 {
+			chip.Timers[0] -= 1
+		} else {
+			chip.Timers[0] = 0
+		}
 	}
 	rl.UnloadTexture(t)
 	rl.UnloadRenderTexture(target)

@@ -72,6 +72,7 @@ type EmulatorStore interface {
 	SetDelayTimer(firstByte byte)
 	SkipKeyNotPressed(firstByte byte)
 	SkipKeyPressed(firstByte byte)
+	PutTimerInRegister(firstByte byte)
 }
 
 type Emulator struct {
@@ -391,6 +392,10 @@ func (c *Chip8) SetDelayTimer(firstByte byte) {
 	c.Timers[0] = c.Registers[firstByte&0xf]
 }
 
+func (c *Chip8) PutTimerInRegister(firstByte byte) {
+	c.Registers[firstByte&0xf] = c.Timers[0]
+}
+
 func (c *Chip8) SkipKeyNotPressed(firstByte byte) {
 	targetKey := c.Registers[firstByte&0xf]
 	fmt.Printf("Key UP: %d\n", targetKey)
@@ -473,7 +478,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		switch secondByte {
 		case 0x07:
 			// panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
-			fmt.Printf("pass")
+			e.PutTimerInRegister(firstByte)
 		case 0x0a:
 			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		case 0x15:
