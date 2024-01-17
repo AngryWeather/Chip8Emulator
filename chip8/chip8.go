@@ -69,6 +69,7 @@ type EmulatorStore interface {
 	VxLeftShift(firstByte, secondByte byte)
 	StoreBCDRepresentationInMemory(firstByte, secondByte byte)
 	StoreValueOfVxPlusIInI(firstByte, secondByte byte)
+	SetDelayTimer(firstByte byte)
 }
 
 type Emulator struct {
@@ -364,6 +365,11 @@ func (c *Chip8) VxLeftShift(firstByte, secondByte byte) {
 
 }
 
+// SetDelayTimer sets delay timer to value in Vx.
+func (c *Chip8) SetDelayTimer(firstByte byte) {
+	c.Timers[0] = c.Registers[firstByte&0xf]
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -433,7 +439,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		case 0x0a:
 			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		case 0x15:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+			e.SetDelayTimer(firstByte)
 		case 0x18:
 			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		case 0x1e:

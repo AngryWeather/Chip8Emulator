@@ -734,6 +734,21 @@ func TestStoreValueOfVxPlusIInI(t *testing.T) {
 	})
 }
 
+func TestSetDelayTimer(t *testing.T) {
+	t.Run("instruction 0xf015 sets delay timer to 0x10 for V0=0x10", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 0x10
+
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0xf0, 0x15)
+
+		got := chip.Timers[0]
+		var want byte = 0x10
+
+		AssertBytes(t, got, want)
+	})
+}
+
 func AssertBytes(t testing.TB, got, want byte) {
 	t.Helper()
 	if got != want {
