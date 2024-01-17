@@ -70,10 +70,31 @@ type EmulatorStore interface {
 	StoreBCDRepresentationInMemory(firstByte, secondByte byte)
 	StoreValueOfVxPlusIInI(firstByte, secondByte byte)
 	SetDelayTimer(firstByte byte)
+	SkipKeyNotPressed(firstByte byte)
+	SkipKeyPressed(firstByte byte)
 }
 
 type Emulator struct {
 	EmulatorStore
+}
+
+var keymap = map[byte]int32{
+	0x1: rl.KeyOne,
+	0x2: rl.KeyTwo,
+	0x3: rl.KeyThree,
+	0xc: rl.KeyFour,
+	0x4: rl.KeyQ,
+	0x5: rl.KeyW,
+	0x6: rl.KeyE,
+	0xd: rl.KeyR,
+	0x7: rl.KeyA,
+	0x8: rl.KeyS,
+	0x9: rl.KeyD,
+	0xe: rl.KeyF,
+	0xa: rl.KeyZ,
+	0x0: rl.KeyX,
+	0xb: rl.KeyC,
+	0xf: rl.KeyV,
 }
 
 // ClearScreen clears the screen by setting all pixels to 0.
@@ -370,6 +391,22 @@ func (c *Chip8) SetDelayTimer(firstByte byte) {
 	c.Timers[0] = c.Registers[firstByte&0xf]
 }
 
+func (c *Chip8) SkipKeyNotPressed(firstByte byte) {
+	targetKey := c.Registers[firstByte&0xf]
+	fmt.Printf("Key UP: %d\n", targetKey)
+	if rl.IsKeyUp(keymap[targetKey]) {
+		c.Pc += 2
+	}
+}
+
+func (c *Chip8) SkipKeyPressed(firstByte byte) {
+	targetKey := c.Registers[firstByte&0xf]
+	fmt.Printf("Key DOWN: %d\n", targetKey)
+	if rl.IsKeyDown(keymap[targetKey]) {
+		c.Pc += 2
+	}
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -427,15 +464,16 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		e.Draw(firstByte, secondByte)
 	case 0xe:
 		switch secondByte {
-		case 0x93:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+		case 0x9e:
+			e.SkipKeyPressed(firstByte)
 		case 0xa1:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+			e.SkipKeyNotPressed(firstByte)
 		}
 	case 0xf:
 		switch secondByte {
 		case 0x07:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+			// panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+			fmt.Printf("pass")
 		case 0x0a:
 			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 		case 0x15:
