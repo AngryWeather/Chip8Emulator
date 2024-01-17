@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"image/color"
 
+	"os"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -72,6 +74,8 @@ type EmulatorStore interface {
 	SetDelayTimer(firstByte byte)
 	SkipKeyNotPressed(firstByte byte)
 	SkipKeyPressed(firstByte byte)
+	PutTimerInRegister(firstByte byte)
+	WaitForKeyPress(firstByte byte)
 }
 
 type Emulator struct {
@@ -407,6 +411,25 @@ func (c *Chip8) SkipKeyPressed(firstByte byte) {
 	}
 }
 
+func (c *Chip8) WaitForKeyPress(firstByte byte) {
+	if rl.GetKeyPressed() != 0 {
+		value := rl.GetKeyPressed()
+		c.Registers[firstByte&0xf] = getKeyFromKeymap(value)
+	} else {
+		c.Pc -= 2
+	}
+}
+
+func getKeyFromKeymap(value int32) byte {
+	for k, v := range keymap {
+		if v == value {
+			fmt.Fprintln(os.Stdout, []any{"v: %d", v}...)
+			return k
+		}
+	}
+	return 0
+}
+
 func (e *Emulator) Emulate(firstByte, secondByte byte) {
 	switch firstByte >> 4 {
 	case 0x0:
@@ -475,7 +498,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 			// panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
 			fmt.Printf("pass")
 		case 0x0a:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+			e.WaitForKeyPress(firstByte)
 		case 0x15:
 			e.SetDelayTimer(firstByte)
 		case 0x18:
