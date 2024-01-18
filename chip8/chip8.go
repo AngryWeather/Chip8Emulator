@@ -136,22 +136,14 @@ func (c *Chip8) StoreValueOfVxPlusIInI(firstByte, secondByte byte) {
 
 // LoadRegistersFromMemory loads x registers from memory starting at index register (I).
 func (c *Chip8) LoadRegistersFromMemory(firstByte, secondByte byte) {
-	numOfRegisters := (firstByte & 0xf) + 1
-
-	for i := 0; i < int(numOfRegisters); i++ {
-		c.Registers[i] = c.Memory[c.I]
-		c.I += 1
-	}
+	copy(c.Registers[0x0:firstByte&0xf+1], c.Memory[c.I:c.I+uint16(firstByte&0xf+1)])
+	c.I += uint16(c.Registers[firstByte&0xf]) + 1
 }
 
 // LoadRegistersToMemory loads x registers to memory starting at index register I.
 func (c *Chip8) LoadRegistersToMemory(firstByte, secondByte byte) {
-	numOfRegisters := (firstByte & 0xf) + 1
-
-	for i := 0; i < int(numOfRegisters); i++ {
-		c.Memory[c.I] = c.Registers[i]
-		c.I += 1
-	}
+	copy(c.Memory[c.I:c.I+uint16(firstByte&0xf+1)], c.Registers[0x0:firstByte&0xf+1])
+	c.I += uint16(c.Registers[firstByte&0xf]) + 1
 }
 
 // Return pops address from the stack and puts it in the pc.
@@ -307,27 +299,27 @@ func (c *Chip8) AddValueToRegister(firstByte, secondByte byte) {
 func (c *Chip8) VxOrVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
-	c.Registers[0xf] = 0
 	value := c.Registers[registerX] | c.Registers[secondByte>>4]
 	c.Registers[registerX] = value
+	c.Registers[0xf] = 0
 }
 
 // VxAndVy calculates result of Vx&Vy and stores the result in Vx.
 func (c *Chip8) VxAndVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
-	c.Registers[0xf] = 0
 	value := c.Registers[registerX] & c.Registers[secondByte>>4]
 	c.Registers[registerX] = value
+	c.Registers[0xf] = 0
 }
 
 // VxXorVy calculates result of Vx^Vy and stores the result in Vx.
 func (c *Chip8) VxXorVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
-	c.Registers[0xf] = 0
 
 	value := c.Registers[registerX] ^ c.Registers[secondByte>>4]
 	c.Registers[registerX] = value
+	c.Registers[0xf] = 0
 }
 
 // VxAddVy adds value of Vx and Vy, stores the result in Vx and sets Vf to 1 on overflow.
@@ -337,11 +329,11 @@ func (c *Chip8) VxAddVy(firstByte, secondByte byte) {
 
 	var xOverflow int = int(c.Registers[registerX])
 	var yOverflow int = int(c.Registers[registerY])
-	c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
-
 	if xOverflow+yOverflow > 255 {
+		c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
 		c.Registers[0xf] = 1
 	} else {
+		c.Registers[registerX] = c.Registers[registerX] + c.Registers[registerY]
 		c.Registers[0xf] = 0
 	}
 
@@ -352,16 +344,14 @@ func (c *Chip8) VxSubVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 	registerY := secondByte >> 4
 
-	var xOverflow int = int(c.Registers[registerX])
-	var yOverflow int = int(c.Registers[registerY])
-	c.Registers[registerX] = c.Registers[registerX] - c.Registers[registerY]
-
-	if xOverflow >= yOverflow {
+	if c.Registers[registerX] >= c.Registers[registerY] {
+		c.Registers[registerX] = c.Registers[registerX] - c.Registers[registerY]
 		c.Registers[0xf] = 1
-		// y > x sets Vf to 0 because of borrowing value
-	} else if xOverflow < yOverflow {
+	} else {
+		c.Registers[registerX] = c.Registers[registerX] - c.Registers[registerY]
 		c.Registers[0xf] = 0
 	}
+
 }
 
 // VySubVx sets Vf to 1 if Vy > Vx and sets Vx to Vy - Vx.
@@ -384,9 +374,14 @@ func (c *Chip8) VxRightShift(firstByte, secondByte byte) {
 
 	c.Registers[registerX] = c.Registers[secondByte>>4]
 	// find least significant bit and check if it's 1
-	c.Registers[0xf] = c.Registers[registerX] & 0x1
-	// right shift by 1 to divide by 2
-	c.Registers[registerX] = c.Registers[registerX] >> 1
+	if c.Registers[registerX]&0x1 == 1 {
+		// right shift by 1 to divide by 2
+		c.Registers[registerX] = c.Registers[registerX] >> 1
+		c.Registers[0xf] = 1
+	} else {
+		c.Registers[registerX] = c.Registers[registerX] >> 1
+		c.Registers[0xf] = 0
+	}
 }
 
 // VxLeftShift sets Vf to 1 if the most significant bit of Vx is 1 and multiplies Vx by 2.
@@ -395,9 +390,15 @@ func (c *Chip8) VxLeftShift(firstByte, secondByte byte) {
 
 	c.Registers[registerX] = c.Registers[secondByte>>4]
 	// find most significant bit and check if it's 1
-	c.Registers[0xf] = c.Registers[registerX] >> 7
-	// left shift by 1 to multiply by 2
-	c.Registers[registerX] = c.Registers[registerX] << 1
+	if c.Registers[registerX]>>7 == 1 {
+		// left shift by 1 to multiply by 2
+		c.Registers[registerX] = c.Registers[registerX] << 1
+		c.Registers[0xf] = 1
+	} else {
+		// left shift by 1 to multiply by 2
+		c.Registers[registerX] = c.Registers[registerX] << 1
+		c.Registers[0xf] = 0
+	}
 
 }
 
