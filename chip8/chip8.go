@@ -266,19 +266,18 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 			// position in 1D array is based on x, y and width
 			var position int = int(x) + (int(y) * int(c.Width))
 
+			// pixels are xored (^) onto the screen but xor is not defined for color.RGBA
 			if (pixel == 1 && c.Screen[position] == c.SecondaryColor) || (pixel == 0 && c.Screen[position] == c.PrimaryColor) {
 				color = c.PrimaryColor
 			} else {
 				color = c.SecondaryColor
 			}
-			// pixels are xored (^) onto the screen but xor is not defined for color.RGBA
+
+			// set collision flag
 			if pixel == 1 && c.Screen[position] == c.PrimaryColor {
 				c.Registers[0xf] = 1
 			}
-			// c.Screen[position].R ^= color.R
-			// c.Screen[position].G ^= color.G
-			// c.Screen[position].B ^= color.B
-			// c.Screen[position].A ^= color.A
+
 			c.Screen[position] = color
 
 			// increase x to draw in the next x coordinate
