@@ -285,9 +285,9 @@ func TestSkipNextInstruction(t *testing.T) {
 }
 
 func TestJumpToLocationPlusV0(t *testing.T) {
-	t.Run("instruction 0xb321 with v0 register at 0x4 sets pc to 0x325", func(t *testing.T) {
+	t.Run("instruction 0xb321 with Vf = 0x4 sets pc to 0x325", func(t *testing.T) {
 		chip := NewChip8()
-		chip.Registers[0] = 0x4
+		chip.Registers[0xf] = 0x4
 		emulator := Emulator{EmulatorStore: chip}
 
 		emulator.Emulate(0xb3, 0x21)
@@ -625,9 +625,9 @@ func TestVySubVx(t *testing.T) {
 }
 
 func TestVxRightShift(t *testing.T) {
-	t.Run("instruction 0x8016 sets Vf to 1 for Vx = 0x3 and divides Vx by 2", func(t *testing.T) {
+	t.Run("instruction 0x8016 sets Vf to 1 for Vy=1 and divides Vx by 2", func(t *testing.T) {
 		chip := NewChip8()
-		chip.Registers[0x0] = 0x3
+		chip.Registers[0x1] = 0x3
 
 		emulator := Emulator{EmulatorStore: chip}
 		emulator.Emulate(0x80, 0x16)
@@ -645,7 +645,7 @@ func TestVxRightShift(t *testing.T) {
 
 	t.Run("instruction 0x8016 sets Vf to 0 for Vx = 0x2 and divides Vx by 2", func(t *testing.T) {
 		chip := NewChip8()
-		chip.Registers[0x0] = 0x2
+		chip.Registers[0x1] = 0x2
 
 		emulator := Emulator{EmulatorStore: chip}
 		emulator.Emulate(0x80, 0x16)
@@ -663,9 +663,9 @@ func TestVxRightShift(t *testing.T) {
 }
 
 func TestVxLeftShift(t *testing.T) {
-	t.Run("instruction 0x801e sets Vf to 1 for Vx = 0xf0 and multiplies Vx by 2", func(t *testing.T) {
+	t.Run("instruction 0x801e sets Vf to 1 for Vy = 0x80 and multiplies Vx by 2", func(t *testing.T) {
 		chip := NewChip8()
-		chip.Registers[0x0] = 0x80
+		chip.Registers[0x1] = 0x80
 
 		emulator := Emulator{EmulatorStore: chip}
 		emulator.Emulate(0x80, 0x1e)

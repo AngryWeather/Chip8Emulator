@@ -514,7 +514,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		case 0x15:
 			e.SetDelayTimer(firstByte)
 		case 0x18:
-			panic(fmt.Sprintf("Instruction %x not implemented", uint16(firstByte)<<8|uint16(secondByte)))
+			fmt.Println("sound")
 		case 0x1e:
 			e.StoreValueOfVxPlusIInI(firstByte, secondByte)
 		case 0x33:
