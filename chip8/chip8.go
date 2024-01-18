@@ -242,7 +242,8 @@ func (c *Chip8) SkipNextInstruction(firstByte, secondByte byte) {
 }
 
 func (c *Chip8) JumpPlusRegister(firstByte, secondByte byte) {
-	register := c.Registers[0x0]
+	// works for chip8 quirks
+	register := c.Registers[0xf]
 	c.Pc = get12BitValue(firstByte, secondByte) + uint16(register)
 }
 
@@ -250,6 +251,7 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 	bytesToRead := secondByte & 0xf
 	x := c.Registers[firstByte&0xf] % c.Width
 	y := c.Registers[secondByte>>4] % c.Height
+	c.Registers[0xf] = 0
 
 	for i := c.I; i < (uint16(bytesToRead) + c.I); i++ {
 		var currentByte byte = c.Memory[i]
@@ -264,18 +266,19 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 			// position in 1D array is based on x, y and width
 			var position int = int(x) + (int(y) * int(c.Width))
 
-			// pixels are xored (^) onto the screen but xor is not defined for color.RGBA
-			if pixel == 1 && c.Screen[position] == c.PrimaryColor {
-				color = c.SecondaryColor
-				c.Registers[0xf] = 1
-			} else if (pixel == 1 && c.Screen[position] == c.SecondaryColor) || (pixel == 0 && c.Screen[position] == c.PrimaryColor) {
+			if (pixel == 1 && c.Screen[position] == c.SecondaryColor) || (pixel == 0 && c.Screen[position] == c.PrimaryColor) {
 				color = c.PrimaryColor
-				c.Registers[0xf] = 0
 			} else {
 				color = c.SecondaryColor
-				c.Registers[0xf] = 0
 			}
-
+			// pixels are xored (^) onto the screen but xor is not defined for color.RGBA
+			if pixel == 1 && c.Screen[position] == c.PrimaryColor {
+				c.Registers[0xf] = 1
+			}
+			// c.Screen[position].R ^= color.R
+			// c.Screen[position].G ^= color.G
+			// c.Screen[position].B ^= color.B
+			// c.Screen[position].A ^= color.A
 			c.Screen[position] = color
 
 			// increase x to draw in the next x coordinate
@@ -287,9 +290,6 @@ func (c *Chip8) Draw(firstByte, secondByte byte) {
 		// reset x
 		x = c.Registers[firstByte&0xf] % c.Width
 		// increase y to move down
-		if y > 31 {
-			break
-		}
 		y += 1
 		if y > 31 {
 			break
@@ -308,6 +308,7 @@ func (c *Chip8) AddValueToRegister(firstByte, secondByte byte) {
 func (c *Chip8) VxOrVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
+	c.Registers[0xf] = 0
 	value := c.Registers[registerX] | c.Registers[secondByte>>4]
 	c.Registers[registerX] = value
 }
@@ -316,6 +317,7 @@ func (c *Chip8) VxOrVy(firstByte, secondByte byte) {
 func (c *Chip8) VxAndVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
+	c.Registers[0xf] = 0
 	value := c.Registers[registerX] & c.Registers[secondByte>>4]
 	c.Registers[registerX] = value
 }
@@ -323,6 +325,7 @@ func (c *Chip8) VxAndVy(firstByte, secondByte byte) {
 // VxXorVy calculates result of Vx^Vy and stores the result in Vx.
 func (c *Chip8) VxXorVy(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
+	c.Registers[0xf] = 0
 
 	value := c.Registers[registerX] ^ c.Registers[secondByte>>4]
 	c.Registers[registerX] = value
@@ -380,6 +383,7 @@ func (c *Chip8) VySubVx(firstByte, secondByte byte) {
 func (c *Chip8) VxRightShift(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
+	c.Registers[registerX] = c.Registers[secondByte>>4]
 	// find least significant bit and check if it's 1
 	c.Registers[0xf] = c.Registers[registerX] & 0x1
 	// right shift by 1 to divide by 2
@@ -390,6 +394,7 @@ func (c *Chip8) VxRightShift(firstByte, secondByte byte) {
 func (c *Chip8) VxLeftShift(firstByte, secondByte byte) {
 	registerX := firstByte & 0xf
 
+	c.Registers[registerX] = c.Registers[secondByte>>4]
 	// find most significant bit and check if it's 1
 	c.Registers[0xf] = c.Registers[registerX] >> 7
 	// left shift by 1 to multiply by 2

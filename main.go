@@ -51,6 +51,7 @@ func main() {
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
 		rl.BeginDrawing()
+		// run 10 instructions per frame
 		for i := 0; i < 10; i++ {
 			if rl.WindowShouldClose() {
 				rl.CloseWindow()
