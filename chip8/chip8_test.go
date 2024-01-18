@@ -749,6 +749,20 @@ func TestSetDelayTimer(t *testing.T) {
 	})
 }
 
+func TestSetLocationOfSprite(t *testing.T) {
+	t.Run("instruction 0xf029 for V0=1 sets I to 0x5", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 1
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0xf0, 0x29)
+
+		got := chip.I
+		var want uint16 = 0x5
+
+		AssertAddress(t, got, want)
+	})
+}
+
 func AssertBytes(t testing.TB, got, want byte) {
 	t.Helper()
 	if got != want {

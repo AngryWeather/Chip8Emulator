@@ -78,6 +78,7 @@ type EmulatorStore interface {
 	PutTimerInRegister(firstByte byte)
 	WaitForKeyPress(firstByte byte)
 	SetRandomNumber(firstByte, secondByte byte)
+	SetLocationOfSprite(firstByte byte)
 }
 
 type Emulator struct {
@@ -101,6 +102,11 @@ var keymap = map[byte]int32{
 	0x0: rl.KeyX,
 	0xb: rl.KeyC,
 	0xf: rl.KeyV,
+}
+
+func (c *Chip8) SetLocationOfSprite(firstByte byte) {
+	value := c.Registers[firstByte&0xf]
+	c.I = uint16(value * 5)
 }
 
 func (c *Chip8) SetRandomNumber(firstByte, secondByte byte) {
@@ -518,6 +524,8 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 			fmt.Println("sound")
 		case 0x1e:
 			e.StoreValueOfVxPlusIInI(firstByte, secondByte)
+		case 0x29:
+			e.SetLocationOfSprite(firstByte)
 		case 0x33:
 			e.StoreBCDRepresentationInMemory(firstByte, secondByte)
 		case 0x55:
