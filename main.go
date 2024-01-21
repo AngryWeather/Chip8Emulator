@@ -60,20 +60,66 @@ func main() {
 	height := int32(720)
 	textureWidth := int32(64)
 	textureHeight := int32(32)
+	colorUIHeight := int32(100)
 
-	rl.InitWindow(width, height, "Chip8")
+	rl.InitWindow(width, height+colorUIHeight, "Chip8")
 	defer rl.CloseWindow()
 	checked := rl.Image{Format: rl.UncompressedR8g8b8a8, Width: textureWidth, Height: textureHeight, Mipmaps: 1}
 
+	primaryColors := [10]rl.Rectangle{}
+	secondaryColors := [10]rl.Rectangle{}
+
+	centerPos := width/2 - (20*9+30*10)/2
+	// colorsX := float32(i*50) + float32(centerPos)
+	// create rectangles for primary colors
+	for i := 0; i < len(primaryColors); i++ {
+		primaryColors[i].X = float32(i*50) + float32(centerPos)
+		primaryColors[i].Y = 10
+		primaryColors[i].Width = 30
+		primaryColors[i].Height = 30
+	}
+
 	t := rl.LoadTextureFromImage(&checked)
+
+	colors := [10]rl.Color{rl.Black, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Brown, rl.Gray,
+		rl.Purple, rl.Pink}
+
+	// create rectangles for secondary colors
+	for i := 0; i < len(secondaryColors); i++ {
+		secondaryColors[i].X = float32(i*50) + float32(centerPos)
+		secondaryColors[i].Y = 50
+		secondaryColors[i].Width = 30
+		secondaryColors[i].Height = 30
+	}
 	chip.Texture = t
 	rl.UnloadImage(&checked)
 	rl.SetTargetFPS(60)
 
 	target := rl.LoadRenderTexture(width, height)
+	uiTarget := rl.LoadRenderTexture(width, colorUIHeight)
+
+	rl.SetMouseOffset(0, -int(height))
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
 		rl.BeginDrawing()
+		rl.BeginTextureMode(uiTarget)
+		rl.ClearBackground(rl.LightGray)
+		mousePos := rl.GetMousePosition()
+
+		for i := 0; i < len(primaryColors); i++ {
+			rl.DrawRectangleRec(primaryColors[i], colors[i])
+		}
+
+		for i := 0; i < len(secondaryColors); i++ {
+			rl.DrawRectangleRec(secondaryColors[i], colors[i])
+		}
+
+		for i := 0; i < len(secondaryColors); i++ {
+			if rl.CheckCollisionPointRec(mousePos, secondaryColors[i]) {
+			}
+		}
+		rl.EndTextureMode()
+
 		// run 10 instructions per frame
 		for i := 0; i < 10; i++ {
 			if rl.WindowShouldClose() {
@@ -102,11 +148,26 @@ func main() {
 			chip.Timers[0] = 0
 		}
 
-		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0, float32(target.Texture.Width), float32(-target.Texture.Height)), rl.NewRectangle(0, 0, float32(width), float32(height)), rl.NewVector2(0, 0), 0, rl.White)
+		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0,
+			float32(target.Texture.Width), float32(-target.Texture.Height)),
+			rl.NewRectangle(0, 0, float32(width), float32(height)),
+			rl.NewVector2(0, 0), 0, rl.White)
+
+		// render colors ui
+		rl.DrawTexturePro(uiTarget.Texture,
+			rl.NewRectangle(0, 0, float32(uiTarget.Texture.Width),
+				float32(-uiTarget.Texture.Height)),
+			rl.NewRectangle(0, float32(height), float32(width), float32(colorUIHeight)),
+			rl.NewVector2(0, 0),
+			0,
+			rl.White,
+		)
+
 		rl.EndDrawing()
 	}
 	rl.UnloadTexture(t)
 	rl.UnloadRenderTexture(target)
+	rl.UnloadRenderTexture(uiTarget)
 }
 
 func readFileToBuffer(filename string) []byte {
