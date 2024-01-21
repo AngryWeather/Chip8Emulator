@@ -99,25 +99,32 @@ func main() {
 	uiTarget := rl.LoadRenderTexture(width, colorUIHeight)
 
 	rl.SetMouseOffset(0, -int(height))
+	var colorTint rl.Color = rl.White
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		rl.BeginTextureMode(uiTarget)
-		rl.ClearBackground(rl.LightGray)
 		mousePos := rl.GetMousePosition()
+		_ = mousePos
+		rl.ClearBackground(rl.LightGray)
 
+        // draw rectangles of primaryColor possibilities
 		for i := 0; i < len(primaryColors); i++ {
 			rl.DrawRectangleRec(primaryColors[i], colors[i])
 		}
 
+        // draw rectangles of secondaryColor possibilities
 		for i := 0; i < len(secondaryColors); i++ {
 			rl.DrawRectangleRec(secondaryColors[i], colors[i])
 		}
 
-		for i := 0; i < len(secondaryColors); i++ {
-			if rl.CheckCollisionPointRec(mousePos, secondaryColors[i]) {
+        // check if mouse is inside rectangle
+		for i := 0; i < len(primaryColors); i++ {
+			if rl.CheckCollisionPointRec(mousePos, primaryColors[i]) {
+				colorTint = colors[i]
 			}
 		}
+
 		rl.EndTextureMode()
 
 		// run 10 instructions per frame
@@ -151,7 +158,7 @@ func main() {
 		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0,
 			float32(target.Texture.Width), float32(-target.Texture.Height)),
 			rl.NewRectangle(0, 0, float32(width), float32(height)),
-			rl.NewVector2(0, 0), 0, rl.White)
+			rl.NewVector2(0, 0), 0, colorTint)
 
 		// render colors ui
 		rl.DrawTexturePro(uiTarget.Texture,
