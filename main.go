@@ -52,7 +52,6 @@ func main() {
 	}
 
 	copy(chip.Memory[0x00:len(font)], font)
-	// copy(chip.Memory[0x80:len(font)+0x80], font)
 
 	emulator := chip8.Emulator{EmulatorStore: chip}
 
@@ -67,31 +66,23 @@ func main() {
 	checked := rl.Image{Format: rl.UncompressedR8g8b8a8, Width: textureWidth, Height: textureHeight, Mipmaps: 1}
 
 	primaryColors := [10]rl.Rectangle{}
-	secondaryColors := [10]rl.Rectangle{}
 
-	centerPos := width/2 - (20*9+30*10)/2
+	centerPos := width/2 - (20*9+60*10)/2
 
 	// create rectangles for primary colors
 	for i := 0; i < len(primaryColors); i++ {
-		primaryColors[i].X = float32(i*50) + float32(centerPos)
+		primaryColors[i].X = float32(i*80) + float32(centerPos)
 		primaryColors[i].Y = 10
-		primaryColors[i].Width = 30
-		primaryColors[i].Height = 30
+		primaryColors[i].Width = 60
+		primaryColors[i].Height = 60
 	}
 
 	t := rl.LoadTextureFromImage(&checked)
 
 	rl.SetTextureFilter(t, rl.TextureFilterNearest)
-	colors := [10]rl.Color{rl.Black, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Brown, rl.Gray,
+	colors := [10]rl.Color{rl.DarkBlue, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Brown, rl.Gray,
 		rl.Purple, rl.Pink}
 
-	// create rectangles for secondary colors
-	for i := 0; i < len(secondaryColors); i++ {
-		secondaryColors[i].X = float32(i*50) + float32(centerPos)
-		secondaryColors[i].Y = 50
-		secondaryColors[i].Width = 30
-		secondaryColors[i].Height = 30
-	}
 	chip.Texture = t
 	rl.UnloadImage(&checked)
 	rl.SetTargetFPS(60)
@@ -111,11 +102,6 @@ func main() {
 		// draw rectangles of primaryColor possibilities
 		for i := 0; i < len(primaryColors); i++ {
 			rl.DrawRectangleRec(primaryColors[i], colors[i])
-		}
-
-		// draw rectangles of secondaryColor possibilities
-		for i := 0; i < len(secondaryColors); i++ {
-			rl.DrawRectangleRec(secondaryColors[i], colors[i])
 		}
 
 		// check if mouse is inside rectangle
