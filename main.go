@@ -70,7 +70,7 @@ func main() {
 	secondaryColors := [10]rl.Rectangle{}
 
 	centerPos := width/2 - (20*9+30*10)/2
-	// colorsX := float32(i*50) + float32(centerPos)
+
 	// create rectangles for primary colors
 	for i := 0; i < len(primaryColors); i++ {
 		primaryColors[i].X = float32(i*50) + float32(centerPos)
@@ -81,6 +81,7 @@ func main() {
 
 	t := rl.LoadTextureFromImage(&checked)
 
+	rl.SetTextureFilter(t, rl.TextureFilterNearest)
 	colors := [10]rl.Color{rl.Black, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Brown, rl.Gray,
 		rl.Purple, rl.Pink}
 
@@ -105,22 +106,22 @@ func main() {
 		rl.BeginDrawing()
 		rl.BeginTextureMode(uiTarget)
 		mousePos := rl.GetMousePosition()
-		_ = mousePos
 		rl.ClearBackground(rl.LightGray)
 
-        // draw rectangles of primaryColor possibilities
+		// draw rectangles of primaryColor possibilities
 		for i := 0; i < len(primaryColors); i++ {
 			rl.DrawRectangleRec(primaryColors[i], colors[i])
 		}
 
-        // draw rectangles of secondaryColor possibilities
+		// draw rectangles of secondaryColor possibilities
 		for i := 0; i < len(secondaryColors); i++ {
 			rl.DrawRectangleRec(secondaryColors[i], colors[i])
 		}
 
-        // check if mouse is inside rectangle
+		// check if mouse is inside rectangle
 		for i := 0; i < len(primaryColors); i++ {
-			if rl.CheckCollisionPointRec(mousePos, primaryColors[i]) {
+			if rl.CheckCollisionPointRec(mousePos, primaryColors[i]) &&
+				rl.IsMouseButtonDown(rl.MouseButtonLeft) {
 				colorTint = colors[i]
 			}
 		}
