@@ -84,7 +84,7 @@ func main() {
 	t := rl.LoadTextureFromImage(&checked)
 
 	rl.SetTextureFilter(t, rl.TextureFilterNearest)
-	colors := [10]rl.Color{rl.DarkBlue, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.DarkGreen, rl.Orange,
+	colors := [10]rl.Color{rl.Gold, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Lime, rl.Orange,
 		rl.Purple, rl.Pink}
 
 	chip.Texture = t
