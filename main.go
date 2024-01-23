@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+const dropText = "Drop .ch8 file"
+const dropTextFontSize = 120
 
 type NoFilenameError struct{}
 type WrongFilenameExtension struct {
@@ -17,20 +21,11 @@ type WrongFilenameExtension struct {
 
 func main() {
 
-	filename, err := GetFilenameFromCommand(os.Args)
-
-	if err != nil {
-		panic(err)
-	}
-
-	program := readFileToBuffer(filename)
-
 	//initialize chip8
 	chip := chip8.NewChip8()
 	for i := range chip.Screen {
 		chip.Screen[i] = rl.Black
 	}
-	copy(chip.Memory[0x200:], program)
 
 	font := []byte{
 		0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
@@ -68,7 +63,6 @@ func main() {
 	checked := rl.Image{Format: rl.UncompressedR8g8b8a8, Width: textureWidth, Height: textureHeight, Mipmaps: 1}
 
 	primaryColors := [10]rl.Rectangle{}
-
 	// center colors
 	centerPos := width/2 - (20*9+60*10)/2
 
@@ -96,6 +90,33 @@ func main() {
 
 	rl.SetMouseOffset(0, -int(height))
 	var colorTint rl.Color = rl.White
+
+	// load pixel font
+	pixelFont := rl.LoadFont("assets/pixelplay.png")
+	defer rl.UnloadFont(pixelFont)
+
+	// calculate center position on the screen of the drop file text
+	centerDropText := rl.MeasureTextEx(pixelFont, dropText, dropTextFontSize, 4)
+	centerDropTextX := centerDropText.X / 2
+	centerDropTextY := centerDropText.Y / 2
+
+	// wait for player to drop file
+	for !rl.IsFileDropped() && !rl.WindowShouldClose() {
+		rl.BeginDrawing()
+
+		rl.DrawTextEx(pixelFont, dropText, rl.Vector2{
+			X: float32(width/2 - int32(centerDropTextX)),
+			Y: float32((height+colorUIHeight)/2 - int32(centerDropTextY))}, dropTextFontSize, 4, rl.White)
+		rl.EndDrawing()
+	}
+
+	var program []byte
+	if rl.IsFileDropped() {
+		filename := GetFilenameFromGUI(rl.LoadDroppedFiles()[0])
+		program = readFileToBuffer(filename)
+		copy(chip.Memory[0x200:], program)
+
+	}
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
 		rl.BeginDrawing()
@@ -220,4 +241,10 @@ func GetFilenameFromCommand(args []string) (string, error) {
 	}
 
 	return args[1], nil
+}
+
+func GetFilenameFromGUI(path string) string {
+	path = filepath.ToSlash(path)
+	splits := strings.Split(path, "/")
+	return splits[len(splits)-1]
 }

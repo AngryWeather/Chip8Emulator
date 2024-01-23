@@ -6,6 +6,33 @@ import (
 	"testing"
 )
 
+func TestGetFilenameFromGUI(t *testing.T) {
+	t.Run("Get filename from given path with backslashes", func(t *testing.T) {
+		path := "C:\\test_program.ch8"
+		filename := GetFilenameFromGUI(path)
+
+		got := filename
+		var want string = "test_program.ch8"
+
+		if got != want {
+			t.Errorf("got %q want %q", got, want)
+		}
+
+	})
+
+    t.Run("Get filename from given path with forward slashes", func(t *testing.T) {
+		path := "~/Documents/test_program.ch8"
+		filename := GetFilenameFromGUI(path)
+
+		got := filename
+		var want string = "test_program.ch8"
+
+		if got != want {
+			t.Errorf("got %q want %q", got, want)
+		}
+    })
+}
+
 func TestExtractCommandLineArguments(t *testing.T) {
 	t.Run("Extract filename from command", func(t *testing.T) {
 		os.Args = []string{"go run main.go", "file.ch8"}
