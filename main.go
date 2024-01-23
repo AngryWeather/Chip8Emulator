@@ -63,16 +63,20 @@ func main() {
 
 	rl.InitWindow(width, height+colorUIHeight, "Chip8")
 	defer rl.CloseWindow()
+
+	// create image for chip texture
 	checked := rl.Image{Format: rl.UncompressedR8g8b8a8, Width: textureWidth, Height: textureHeight, Mipmaps: 1}
 
 	primaryColors := [10]rl.Rectangle{}
 
+	// center colors
 	centerPos := width/2 - (20*9+60*10)/2
 
 	// create rectangles for primary colors
 	for i := 0; i < len(primaryColors); i++ {
 		primaryColors[i].X = float32(i*80) + float32(centerPos)
-		primaryColors[i].Y = 10
+		// center vertically
+		primaryColors[i].Y = float32(colorUIHeight)/2 - 30
 		primaryColors[i].Width = 60
 		primaryColors[i].Height = 60
 	}
@@ -80,7 +84,7 @@ func main() {
 	t := rl.LoadTextureFromImage(&checked)
 
 	rl.SetTextureFilter(t, rl.TextureFilterNearest)
-	colors := [10]rl.Color{rl.DarkBlue, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Brown, rl.Gray,
+	colors := [10]rl.Color{rl.DarkBlue, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.DarkGreen, rl.Orange,
 		rl.Purple, rl.Pink}
 
 	chip.Texture = t
@@ -119,6 +123,7 @@ func main() {
 			if rl.WindowShouldClose() {
 				rl.CloseWindow()
 			}
+
 			firstByte := chip.Memory[chip.Pc]
 			secondByte := chip.Memory[chip.Pc+1]
 			emulator.Emulate(firstByte, secondByte)
