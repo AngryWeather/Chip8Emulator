@@ -47,7 +47,7 @@ func main() {
 	}
 
 	copy(chip.Memory[0x00:len(font)], font)
-
+    // sound := rl.LoadSoundFromWave(rl.NewWave(2, 1, 8, 1, []byte{1}))
 	emulator := chip8.Emulator{EmulatorStore: chip}
 
 	width := int32(1280)
