@@ -112,8 +112,7 @@ func main() {
 
 	var program []byte
 	if rl.IsFileDropped() {
-		filename := GetFilenameFromGUI(rl.LoadDroppedFiles()[0])
-		program = readFileToBuffer(filename)
+		program = readFileToBuffer(rl.LoadDroppedFiles()[0])
 		copy(chip.Memory[0x200:], program)
 
 	}
@@ -190,11 +189,11 @@ func main() {
 	rl.UnloadRenderTexture(uiTarget)
 }
 
-func readFileToBuffer(filename string) []byte {
-	file, err := os.Open(filename)
+func readFileToBuffer(filepath string) []byte {
+	file, err := os.Open(filepath)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error reading file %q", filename))
+		panic(fmt.Sprintf("Error opening file %q", filepath))
 	}
 
 	defer file.Close()
