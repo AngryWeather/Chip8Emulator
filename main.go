@@ -47,7 +47,6 @@ func main() {
 	}
 
 	copy(chip.Memory[0x00:len(font)], font)
-    // sound := rl.LoadSoundFromWave(rl.NewWave(2, 1, 8, 1, []byte{1}))
 	emulator := chip8.Emulator{EmulatorStore: chip}
 
 	width := int32(1280)
@@ -58,6 +57,10 @@ func main() {
 
 	rl.InitWindow(width, height+colorUIHeight, "Chip8")
 	defer rl.CloseWindow()
+	rl.InitAudioDevice()
+	defer rl.CloseAudioDevice()
+	sound := rl.LoadSound("assets/beep.wav")
+	defer rl.UnloadSound(sound)
 
 	// create image for chip texture
 	checked := rl.Image{Format: rl.UncompressedR8g8b8a8, Width: textureWidth, Height: textureHeight, Mipmaps: 1}
@@ -108,6 +111,7 @@ func main() {
 			X: float32(width/2 - int32(centerDropTextX)),
 			Y: float32((height+colorUIHeight)/2 - int32(centerDropTextY))}, dropTextFontSize, 4, rl.White)
 		rl.EndDrawing()
+
 	}
 
 	var program []byte
@@ -118,6 +122,7 @@ func main() {
 	}
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
+
 		rl.BeginDrawing()
 		rl.BeginTextureMode(uiTarget)
 		mousePos := rl.GetMousePosition()
@@ -161,10 +166,23 @@ func main() {
 			}
 		}
 
-		if chip.Timers[0] > 0 {
-			chip.Timers[0] -= 1
-		} else {
-			chip.Timers[0] = 0
+		for t := range chip.Timers {
+			if chip.Timers[t] > 0 {
+				// chip.Timers[1] is a sound timer so if it's greater than 0 play sound
+				if t == 1 {
+					if !rl.IsSoundPlaying(sound) {
+						rl.PlaySound(sound)
+					}
+				}
+				chip.Timers[t] -= 1
+			} else {
+                // deactivate sound timer and stop sound
+				if t == 1 {
+					rl.StopSound(sound)
+				}
+				chip.Timers[t] = 0
+
+			}
 		}
 
 		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0,

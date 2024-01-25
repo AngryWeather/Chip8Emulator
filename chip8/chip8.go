@@ -73,6 +73,7 @@ type EmulatorStore interface {
 	StoreBCDRepresentationInMemory(firstByte, secondByte byte)
 	StoreValueOfVxPlusIInI(firstByte, secondByte byte)
 	SetDelayTimer(firstByte byte)
+	SetSoundTimer(firstByte byte)
 	SkipKeyNotPressed(firstByte byte)
 	SkipKeyPressed(firstByte byte)
 	PutTimerInRegister(firstByte byte)
@@ -413,6 +414,11 @@ func (c *Chip8) SetDelayTimer(firstByte byte) {
 	c.Timers[0] = c.Registers[firstByte&0xf]
 }
 
+// SetSoundTimer sets sound timer to the value of Vx.
+func (c *Chip8) SetSoundTimer(firstByte byte) {
+    c.Timers[1] = c.Registers[firstByte&0xf]
+}
+
 func (c *Chip8) PutTimerInRegister(firstByte byte) {
 	c.Registers[firstByte&0xf] = c.Timers[0]
 }
@@ -521,7 +527,7 @@ func (e *Emulator) Emulate(firstByte, secondByte byte) {
 		case 0x15:
 			e.SetDelayTimer(firstByte)
 		case 0x18:
-			fmt.Println("sound")
+			e.SetSoundTimer(firstByte)
 		case 0x1e:
 			e.StoreValueOfVxPlusIInI(firstByte, secondByte)
 		case 0x29:

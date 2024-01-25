@@ -763,6 +763,20 @@ func TestSetLocationOfSprite(t *testing.T) {
 	})
 }
 
+func TestSetSoundTimer(t *testing.T) {
+	t.Run("instruction 0xf018 for V0=1 sets sound timer to 1", func(t *testing.T) {
+		chip := NewChip8()
+		chip.Registers[0x0] = 1
+		emulator := Emulator{EmulatorStore: chip}
+		emulator.Emulate(0xf0, 0x18)
+
+        got := chip.Timers[1]
+		var want byte = 1
+
+		AssertBytes(t, got, want)
+	})
+}
+
 func AssertBytes(t testing.TB, got, want byte) {
 	t.Helper()
 	if got != want {
