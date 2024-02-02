@@ -130,6 +130,9 @@ func main() {
 	}
 
 	var tickrateSpinner int32 = 10
+	mouseInTickrate := false
+	var mousePos rl.Vector2
+	tickrateSpinnerRect := rl.NewRectangle(0.0, 20.0, 100, 30)
 
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
 
@@ -139,17 +142,23 @@ func main() {
 		rl.BeginTextureMode(topUITarget)
 		rl.ClearBackground(uiColor)
 		rl.SetMouseOffset(0, 0)
+		mousePos = rl.GetMousePosition()
 		// create label for tickrate
 		gui.SetStyle(gui.LABEL, gui.TEXT_ALIGNMENT, gui.TEXT_ALIGN_CENTER)
 		gui.Label(rl.NewRectangle(0, 0, 100, 20), "tickrate")
 		// create spinner for changing tickrate
-		tickrateSpinner = gui.Spinner(rl.NewRectangle(0, 20, 100, 30), "tickrate", &tickrateSpinner, 1, 1000, true)
+		tickrateSpinner = gui.Spinner(tickrateSpinnerRect, "tickrate", &tickrateSpinner, 1, 1000, mouseInTickrate)
+		if rl.CheckCollisionPointRec(mousePos, tickrateSpinnerRect) {
+			mouseInTickrate = true
+		} else {
+			mouseInTickrate = false
+		}
 
 		rl.EndTextureMode()
 
 		rl.BeginTextureMode(uiTarget)
 		rl.SetMouseOffset(0, -int(height))
-		mousePos := rl.GetMousePosition()
+		mousePos = rl.GetMousePosition()
 
 		rl.ClearBackground(uiColor)
 
