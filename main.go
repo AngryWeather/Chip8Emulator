@@ -100,7 +100,7 @@ func main() {
 	uiTarget := rl.LoadRenderTexture(width, colorUIHeight)
 	topUITarget := rl.LoadRenderTexture(width, topUIHeight)
 
-	var colorTint rl.Color = rl.White
+	var colorTint rl.Color = uiTextColor
 
 	// load pixel font
 	pixelFont := rl.LoadFont("assets/pixelplay.png")
@@ -139,8 +139,11 @@ func main() {
 		rl.BeginTextureMode(topUITarget)
 		rl.ClearBackground(uiColor)
 		rl.SetMouseOffset(0, 0)
-        // create spinenr for changing tickrate
-		tickrateSpinner = gui.Spinner(rl.NewRectangle(0, 0, 100, 50), "tickrate", &tickrateSpinner, 1, 1000, true)
+		// create label for tickrate
+		gui.SetStyle(gui.LABEL, gui.TEXT_ALIGNMENT, gui.TEXT_ALIGN_CENTER)
+		gui.Label(rl.NewRectangle(0, 0, 100, 20), "tickrate")
+		// create spinner for changing tickrate
+		tickrateSpinner = gui.Spinner(rl.NewRectangle(0, 20, 100, 30), "tickrate", &tickrateSpinner, 1, 1000, true)
 
 		rl.EndTextureMode()
 
