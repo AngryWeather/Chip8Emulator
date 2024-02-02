@@ -247,6 +247,7 @@ func main() {
 	rl.UnloadTexture(t)
 	rl.UnloadRenderTexture(target)
 	rl.UnloadRenderTexture(uiTarget)
+    rl.UnloadRenderTexture(topUITarget)
 }
 
 func readFileToBuffer(filepath string) []byte {
