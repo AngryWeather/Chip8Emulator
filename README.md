@@ -1,4 +1,4 @@
-# Chip8Emulator
+j# Chip8Emulator
 Chip8 emulator made in Go with Raylib.
 ## Installation
 ```
@@ -14,15 +14,17 @@ drag and drop the file containing chip8 program:
 ![drop_file](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/f8936bcf-2625-4074-8bfb-807d7e7731a4)
 ### Example games
 #### Brix
-![brix](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/765d6933-511f-44bd-b55a-60f7d2e20ed7)
+![Brix](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/0d585b91-4069-4e3d-a6b6-b811bbad999e)
 #### FlightRunner
-![flight_runner](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/4bb96576-ce09-4e9c-831e-bb2fc43a2b81)
+![image](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/816e41e2-921b-4543-b05b-daa2cd24ec96)
 #### Snake
-![snake](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/35cf0cad-9492-4f6b-99c0-a6aebe2131b3)
+![snake](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/627533af-56e5-4468-9d71-6362bcd2186b)
 #### Tetris
-![tetris](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/0cbbe12c-3570-49b3-bbe4-887ac6b37b8c)
+![tetris](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/bdcd1ac6-c658-4bd2-b6ff-5f0fa0269155)
 ### Features
 #### Primary Color
 Primary color can be changed from the bar at the bottom.
-![yellow_pong](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/eb7f04ba-cba0-4a74-b190-3f89b6cde8ac)
-![green_brix](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/f40faa0e-bf11-4bfe-b587-fb50cc257768)
+![yellowPong](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/ec2ed476-7117-4136-b17c-2e55b0b2bd0d)
+![purpleBrix](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/d3bfa0d4-7fa5-4594-af61-89c49ade70d0)
+#### Editable Tickrate
+Game speed can be changed from the spinner at the top called tickrate.
