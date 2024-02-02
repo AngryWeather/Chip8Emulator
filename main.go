@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	gui "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -50,12 +51,19 @@ func main() {
 	emulator := chip8.Emulator{EmulatorStore: chip}
 
 	width := int32(1280)
-	height := int32(720)
+	height := int32(770)
 	textureWidth := int32(64)
 	textureHeight := int32(32)
 	colorUIHeight := int32(100)
+	topUIHeight := int32(50)
 
 	rl.InitWindow(width, height+colorUIHeight, "Chip8")
+
+	// set gui style
+	gui.LoadStyle("assets/style_terminal.rgs")
+	uiColor := rl.NewColor(0x16, 0x13, 0x13, 0xff)
+	uiTextColor := rl.NewColor(0x38, 0xf6, 0x20, 0xff)
+
 	defer rl.CloseWindow()
 	rl.InitAudioDevice()
 	defer rl.CloseAudioDevice()
@@ -81,7 +89,7 @@ func main() {
 	t := rl.LoadTextureFromImage(&checked)
 
 	rl.SetTextureFilter(t, rl.TextureFilterNearest)
-	colors := [10]rl.Color{rl.Gold, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Lime, rl.Orange,
+	colors := [10]rl.Color{rl.Gold, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, uiTextColor, rl.Orange,
 		rl.Purple, rl.Pink}
 
 	chip.Texture = t
@@ -90,8 +98,8 @@ func main() {
 
 	target := rl.LoadRenderTexture(width, height)
 	uiTarget := rl.LoadRenderTexture(width, colorUIHeight)
+	topUITarget := rl.LoadRenderTexture(width, topUIHeight)
 
-	rl.SetMouseOffset(0, -int(height))
 	var colorTint rl.Color = rl.White
 
 	// load pixel font
@@ -121,12 +129,26 @@ func main() {
 
 	}
 
+	var tickrateSpinner int32 = 10
+
 	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
 
 		rl.BeginDrawing()
+
+		// render topUI to buffer
+		rl.BeginTextureMode(topUITarget)
+		rl.ClearBackground(uiColor)
+		rl.SetMouseOffset(0, 0)
+        // create spinenr for changing tickrate
+		tickrateSpinner = gui.Spinner(rl.NewRectangle(0, 0, 100, 50), "tickrate", &tickrateSpinner, 1, 1000, true)
+
+		rl.EndTextureMode()
+
 		rl.BeginTextureMode(uiTarget)
+		rl.SetMouseOffset(0, -int(height))
 		mousePos := rl.GetMousePosition()
-		rl.ClearBackground(rl.LightGray)
+
+		rl.ClearBackground(uiColor)
 
 		// draw rectangles of primaryColor possibilities
 		for i := 0; i < len(primaryColors); i++ {
@@ -144,7 +166,7 @@ func main() {
 		rl.EndTextureMode()
 
 		// run 10 instructions per frame
-		for i := 0; i < 10; i++ {
+		for i := 0; i < int(tickrateSpinner); i++ {
 			if rl.WindowShouldClose() {
 				rl.CloseWindow()
 			}
@@ -176,7 +198,7 @@ func main() {
 				}
 				chip.Timers[t] -= 1
 			} else {
-                // deactivate sound timer and stop sound
+				// deactivate sound timer and stop sound
 				if t == 1 {
 					rl.StopSound(sound)
 				}
@@ -185,9 +207,17 @@ func main() {
 			}
 		}
 
+		// render topUI
+		rl.DrawTexturePro(topUITarget.Texture,
+			rl.NewRectangle(0, 0, float32(topUITarget.Texture.Width),
+				float32(-topUITarget.Texture.Height)),
+			rl.NewRectangle(0, 0, float32(width), float32(topUIHeight)),
+			rl.NewVector2(0, 0), 0, rl.White)
+
+		// render texture target
 		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0,
 			float32(target.Texture.Width), float32(-target.Texture.Height)),
-			rl.NewRectangle(0, 0, float32(width), float32(height)),
+			rl.NewRectangle(0, float32(topUIHeight), float32(width), float32(height-topUITarget.Texture.Height)),
 			rl.NewVector2(0, 0), 0, colorTint)
 
 		// render colors ui
