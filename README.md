@@ -1,4 +1,4 @@
-j# Chip8Emulator
+# Chip8Emulator
 Chip8 emulator made in Go with Raylib.
 ## Installation
 ```
@@ -22,7 +22,7 @@ drag and drop the file containing chip8 program:
 #### Tetris
 ![tetris](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/bdcd1ac6-c658-4bd2-b6ff-5f0fa0269155)
 ### Features
-#### Primary Color
+#### Primary color
 Primary color can be changed from the bar at the bottom.
 ![yellowPong](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/ec2ed476-7117-4136-b17c-2e55b0b2bd0d)
 ![purpleBrix](https://github.com/AngryWeather/Chip8Emulator/assets/105065960/d3bfa0d4-7fa5-4594-af61-89c49ade70d0)
