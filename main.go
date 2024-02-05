@@ -22,6 +22,7 @@ const colorUIHeight = int32(100)
 const topUIHeight = int32(50)
 
 var state string = "menu"
+var uiTextColor rl.Color
 var dropTarget rl.RenderTexture2D
 
 type NoFilenameError struct{}
@@ -64,7 +65,7 @@ func main() {
 	// set gui style
 	gui.LoadStyle("assets/style_terminal.rgs")
 	uiColor := rl.NewColor(0x16, 0x13, 0x13, 0xff)
-	uiTextColor := rl.NewColor(0x38, 0xf6, 0x20, 0xff)
+	uiTextColor = rl.NewColor(0x38, 0xf6, 0x20, 0xff)
 
 	defer rl.CloseWindow()
 	rl.InitAudioDevice()
@@ -328,7 +329,7 @@ func displayMainMenu(chip *chip8.Chip8, program []byte, font rl.Font, centerDrop
 		rl.BeginTextureMode(dropTarget)
 		rl.DrawTextEx(font, dropText, rl.Vector2{
 			X: float32(width/2 - int32(centerDropTextX)),
-			Y: float32((height+colorUIHeight)/2 - int32(centerDropTextY))}, dropTextFontSize, 4, rl.White)
+			Y: float32((height+colorUIHeight)/2 - int32(centerDropTextY))}, dropTextFontSize, 4, uiTextColor)
 		rl.EndTextureMode()
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
