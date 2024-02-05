@@ -6,7 +6,7 @@ git clone
 cd into directory
 go run main.go
 ```
-or download .exe for windows.
+or download .exe for windows from https://github.com/AngryWeather/Chip8Emulator/releases
 
 ## Usage
 The initial screen will show the text "Drop .ch8 file" and will wait for you to
