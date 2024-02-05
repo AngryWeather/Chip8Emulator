@@ -8,11 +8,21 @@ import (
 	"path/filepath"
 	"strings"
 
+	gui "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const dropText = "Drop .ch8 file"
 const dropTextFontSize = 120
+const width = int32(1280)
+const height = int32(770)
+const textureWidth = int32(64)
+const textureHeight = int32(32)
+const colorUIHeight = int32(100)
+const topUIHeight = int32(50)
+
+var state string = "menu"
+var dropTarget rl.RenderTexture2D
 
 type NoFilenameError struct{}
 type WrongFilenameExtension struct {
@@ -49,13 +59,13 @@ func main() {
 	copy(chip.Memory[0x00:len(font)], font)
 	emulator := chip8.Emulator{EmulatorStore: chip}
 
-	width := int32(1280)
-	height := int32(720)
-	textureWidth := int32(64)
-	textureHeight := int32(32)
-	colorUIHeight := int32(100)
-
 	rl.InitWindow(width, height+colorUIHeight, "Chip8")
+
+	// set gui style
+	gui.LoadStyle("assets/style_terminal.rgs")
+	uiColor := rl.NewColor(0x16, 0x13, 0x13, 0xff)
+	uiTextColor := rl.NewColor(0x38, 0xf6, 0x20, 0xff)
+
 	defer rl.CloseWindow()
 	rl.InitAudioDevice()
 	defer rl.CloseAudioDevice()
@@ -81,7 +91,7 @@ func main() {
 	t := rl.LoadTextureFromImage(&checked)
 
 	rl.SetTextureFilter(t, rl.TextureFilterNearest)
-	colors := [10]rl.Color{rl.Gold, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, rl.Lime, rl.Orange,
+	colors := [10]rl.Color{rl.Gold, rl.White, rl.Red, rl.Blue, rl.Green, rl.Yellow, uiTextColor, rl.Orange,
 		rl.Purple, rl.Pink}
 
 	chip.Texture = t
@@ -90,9 +100,10 @@ func main() {
 
 	target := rl.LoadRenderTexture(width, height)
 	uiTarget := rl.LoadRenderTexture(width, colorUIHeight)
+	topUITarget := rl.LoadRenderTexture(width, topUIHeight)
+	dropTarget = rl.LoadRenderTexture(width, height)
 
-	rl.SetMouseOffset(0, -int(height))
-	var colorTint rl.Color = rl.White
+	var colorTint rl.Color = uiTextColor
 
 	// load pixel font
 	pixelFont := rl.LoadFont("assets/pixelplay.png")
@@ -103,108 +114,152 @@ func main() {
 	centerDropTextX := centerDropText.X / 2
 	centerDropTextY := centerDropText.Y / 2
 
-	// wait for player to drop file
-	for !rl.IsFileDropped() && !rl.WindowShouldClose() {
-		rl.BeginDrawing()
-
-		rl.DrawTextEx(pixelFont, dropText, rl.Vector2{
-			X: float32(width/2 - int32(centerDropTextX)),
-			Y: float32((height+colorUIHeight)/2 - int32(centerDropTextY))}, dropTextFontSize, 4, rl.White)
-		rl.EndDrawing()
-
-	}
-
 	var program []byte
-	if rl.IsFileDropped() {
-		program = readFileToBuffer(rl.LoadDroppedFiles()[0])
-		copy(chip.Memory[0x200:], program)
 
-	}
+	var tickrateSpinner int32 = 10
+	mouseInTickrate := false
+	var mousePos rl.Vector2
+	tickrateSpinnerRect := rl.NewRectangle(100.0, 20.0, 100, 30)
+	// return to main menu button
+	var mainMenuButton bool
 
-	for chip.Pc < uint16(len(program)+0x200) && !rl.WindowShouldClose() {
-
-		rl.BeginDrawing()
-		rl.BeginTextureMode(uiTarget)
-		mousePos := rl.GetMousePosition()
-		rl.ClearBackground(rl.LightGray)
-
-		// draw rectangles of primaryColor possibilities
-		for i := 0; i < len(primaryColors); i++ {
-			rl.DrawRectangleRec(primaryColors[i], colors[i])
-		}
-
-		// check if mouse is inside rectangle
-		for i := 0; i < len(primaryColors); i++ {
-			if rl.CheckCollisionPointRec(mousePos, primaryColors[i]) &&
-				rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-				colorTint = colors[i]
-			}
-		}
-
-		rl.EndTextureMode()
-
-		// run 10 instructions per frame
-		for i := 0; i < 10; i++ {
-			if rl.WindowShouldClose() {
-				rl.CloseWindow()
+	for !rl.WindowShouldClose() {
+		if state == "play" {
+			rl.BeginDrawing()
+			// render topUI to buffer
+			rl.BeginTextureMode(topUITarget)
+			rl.ClearBackground(uiColor)
+			rl.SetMouseOffset(0, 0)
+			mousePos = rl.GetMousePosition()
+			// create label for tickrate
+			gui.SetStyle(gui.LABEL, gui.TEXT_ALIGNMENT, gui.TEXT_ALIGN_CENTER)
+			gui.Label(rl.NewRectangle(100, 0, 100, 20), "tickrate")
+			// create spinner for changing tickrate
+			tickrateSpinner = gui.Spinner(tickrateSpinnerRect, "tickrate", &tickrateSpinner, 1, 1000, mouseInTickrate)
+			mainMenuButton = gui.Button(rl.NewRectangle(0.0, 0.0, 100, 50), "Main Menu")
+			if mainMenuButton {
+				state = "menu"
+				chip.Pc = 0x200
+				continue
 			}
 
-			firstByte := chip.Memory[chip.Pc]
-			secondByte := chip.Memory[chip.Pc+1]
-			emulator.Emulate(firstByte, secondByte)
-
-			if (firstByte == 0x00 && secondByte == 0xe0) || (firstByte>>4 == 0xd) {
-				rl.BeginTextureMode(target)
-				rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
-				rl.UpdateTexture(chip.Texture, chip.Screen)
-				rl.EndTextureMode()
-			}
-
-			// these instructions should not increase pc
-			if firstByte>>4 != 0x1 && firstByte>>4 != 0x2 {
-				chip.Pc += 2
-			}
-		}
-
-		for t := range chip.Timers {
-			if chip.Timers[t] > 0 {
-				// chip.Timers[1] is a sound timer so if it's greater than 0 play sound
-				if t == 1 {
-					if !rl.IsSoundPlaying(sound) {
-						rl.PlaySound(sound)
-					}
-				}
-				chip.Timers[t] -= 1
+			if rl.CheckCollisionPointRec(mousePos, tickrateSpinnerRect) {
+				mouseInTickrate = true
 			} else {
-                // deactivate sound timer and stop sound
-				if t == 1 {
-					rl.StopSound(sound)
-				}
-				chip.Timers[t] = 0
-
+				mouseInTickrate = false
 			}
+
+			rl.EndTextureMode()
+
+			rl.BeginTextureMode(uiTarget)
+			rl.SetMouseOffset(0, -int(height))
+			mousePos = rl.GetMousePosition()
+
+			rl.ClearBackground(uiColor)
+
+			// draw rectangles of primaryColor possibilities
+			for i := 0; i < len(primaryColors); i++ {
+				rl.DrawRectangleRec(primaryColors[i], colors[i])
+			}
+
+			// check if mouse is inside rectangle
+			for i := 0; i < len(primaryColors); i++ {
+				if rl.CheckCollisionPointRec(mousePos, primaryColors[i]) &&
+					rl.IsMouseButtonDown(rl.MouseButtonLeft) {
+					colorTint = colors[i]
+				}
+			}
+
+			rl.EndTextureMode()
+
+			// run 10 instructions per frame
+			for i := 0; i < int(tickrateSpinner); i++ {
+				if rl.WindowShouldClose() {
+					rl.CloseWindow()
+				}
+
+				firstByte := chip.Memory[chip.Pc]
+				secondByte := chip.Memory[chip.Pc+1]
+				emulator.Emulate(firstByte, secondByte)
+
+				if (firstByte == 0x00 && secondByte == 0xe0) || (firstByte>>4 == 0xd) {
+					rl.BeginTextureMode(target)
+					rl.DrawTexturePro(t, rl.Rectangle{X: 0, Y: 0, Width: float32(textureWidth), Height: float32(textureHeight)}, rl.Rectangle{X: 0, Y: 0, Width: float32(width), Height: float32(height)}, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
+					rl.UpdateTexture(chip.Texture, chip.Screen)
+					rl.EndTextureMode()
+				}
+
+				// these instructions should not increase pc
+				if firstByte>>4 != 0x1 && firstByte>>4 != 0x2 {
+					chip.Pc += 2
+				}
+			}
+
+			for t := range chip.Timers {
+				if chip.Timers[t] > 0 {
+					// chip.Timers[1] is a sound timer so if it's greater than 0 play sound
+					if t == 1 {
+						if !rl.IsSoundPlaying(sound) {
+							rl.PlaySound(sound)
+						}
+					}
+					chip.Timers[t] -= 1
+				} else {
+					// deactivate sound timer and stop sound
+					if t == 1 {
+						rl.StopSound(sound)
+					}
+					chip.Timers[t] = 0
+
+				}
+			}
+
+			// render topUI
+			rl.DrawTexturePro(topUITarget.Texture,
+				rl.NewRectangle(0, 0, float32(topUITarget.Texture.Width),
+					float32(-topUITarget.Texture.Height)),
+				rl.NewRectangle(0, 0, float32(width), float32(topUIHeight)),
+				rl.NewVector2(0, 0), 0, rl.White)
+
+			// render texture target
+			rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0,
+				float32(target.Texture.Width), float32(-target.Texture.Height)),
+				rl.NewRectangle(0, float32(topUIHeight), float32(width), float32(height-topUITarget.Texture.Height)),
+				rl.NewVector2(0, 0), 0, colorTint)
+
+			// render colors ui
+			rl.DrawTexturePro(uiTarget.Texture,
+				rl.NewRectangle(0, 0, float32(uiTarget.Texture.Width),
+					float32(-uiTarget.Texture.Height)),
+				rl.NewRectangle(0, float32(height), float32(width), float32(colorUIHeight)),
+				rl.NewVector2(0, 0),
+				0,
+				rl.White,
+			)
+
+			rl.EndDrawing()
+		} else {
+			// call instruction 0x00e0 to clear the screen
+			// it's necessary to remove old data from the screen
+			emulator.Emulate(0x00, 0xe0)
+
+			// create slice of zeroes to reset chip's memory, registers and
+			// timers
+			var slice []byte
+			for i := 0; i < len(chip.Memory[0x200:]); i++ {
+				slice = append(slice, 0)
+			}
+
+			copy(chip.Memory[0x200:], slice)
+			copy(chip.Registers[:], slice[:0xf])
+			copy(chip.Timers[:], slice[:0x2])
+			program = displayMainMenu(chip, program, pixelFont, centerDropTextX, centerDropTextY)
 		}
-
-		rl.DrawTexturePro(target.Texture, rl.NewRectangle(0, 0,
-			float32(target.Texture.Width), float32(-target.Texture.Height)),
-			rl.NewRectangle(0, 0, float32(width), float32(height)),
-			rl.NewVector2(0, 0), 0, colorTint)
-
-		// render colors ui
-		rl.DrawTexturePro(uiTarget.Texture,
-			rl.NewRectangle(0, 0, float32(uiTarget.Texture.Width),
-				float32(-uiTarget.Texture.Height)),
-			rl.NewRectangle(0, float32(height), float32(width), float32(colorUIHeight)),
-			rl.NewVector2(0, 0),
-			0,
-			rl.White,
-		)
-
-		rl.EndDrawing()
 	}
 	rl.UnloadTexture(t)
 	rl.UnloadRenderTexture(target)
 	rl.UnloadRenderTexture(uiTarget)
+	rl.UnloadRenderTexture(topUITarget)
 }
 
 func readFileToBuffer(filepath string) []byte {
@@ -264,4 +319,36 @@ func GetFilenameFromGUI(path string) string {
 	path = filepath.ToSlash(path)
 	splits := strings.Split(path, "/")
 	return splits[len(splits)-1]
+}
+
+func displayMainMenu(chip *chip8.Chip8, program []byte, font rl.Font, centerDropTextX float32, centerDropTextY float32) []byte {
+	// wait for player to drop file
+	for !rl.IsFileDropped() && !rl.WindowShouldClose() {
+
+		rl.BeginTextureMode(dropTarget)
+		rl.DrawTextEx(font, dropText, rl.Vector2{
+			X: float32(width/2 - int32(centerDropTextX)),
+			Y: float32((height+colorUIHeight)/2 - int32(centerDropTextY))}, dropTextFontSize, 4, rl.White)
+		rl.EndTextureMode()
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.Black)
+
+		rl.ClearScreenBuffers()
+		rl.DrawTexturePro(dropTarget.Texture,
+			rl.NewRectangle(0, 0, float32(dropTarget.Texture.Width), -float32(dropTarget.Texture.Height)),
+			rl.NewRectangle(0, 0, float32(width), float32(height)),
+			rl.NewVector2(0, 0),
+			0,
+			rl.White)
+		rl.EndDrawing()
+	}
+
+	if rl.IsFileDropped() {
+		program = readFileToBuffer(rl.LoadDroppedFiles()[0])
+		copy(chip.Memory[0x200:], program)
+
+	}
+
+	state = "play"
+	return program
 }
