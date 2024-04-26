@@ -10,6 +10,10 @@
 
 # ch8 files
 *.ch8
+!down8.ch8
+!flightrunner.ch8
+!slipperyslope.ch8
+!snake.ch8
 
 # Test binary, built with `go test -c`
 *.test

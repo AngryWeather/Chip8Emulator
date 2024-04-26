@@ -6,10 +6,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	gui "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"golang.org/x/exp/maps"
 )
 
 const dropText = "Drop .ch8 file"
@@ -322,11 +324,47 @@ func GetFilenameFromGUI(path string) string {
 	return splits[len(splits)-1]
 }
 
+var active int32 = 0
+var scroll int32 = 0
+
+var defaultGames = map[string]string{
+	"Down8 by tinaun":                "down8.ch8",
+	"Flight Runner by Tod Punk":      "flightrunner.ch8",
+	"Slippery Slope by John Earnest": "slipperyslope.ch8 ",
+	"Snake by TimoTriisa":            "snake.ch8",
+}
+
+var okButton bool
+
+func stringForListView(defaultGames map[string]string) string {
+	gameList := ""
+
+	sort.Strings(maps.Keys(defaultGames))
+	for k := range defaultGames {
+		gameList += fmt.Sprintf("%s;", k)
+	}
+
+	gameList = strings.TrimSuffix(gameList, ";")
+	return gameList
+}
+
+var listView string = stringForListView(defaultGames)
+var listOfGames = strings.Split(listView, ";")
+var gamePicked int32
+
 func displayMainMenu(chip *chip8.Chip8, program []byte, font rl.Font, centerDropTextX float32, centerDropTextY float32) []byte {
 	// wait for player to drop file
-	for !rl.IsFileDropped() && !rl.WindowShouldClose() {
-
+	for (!rl.IsFileDropped() && !okButton) && !rl.WindowShouldClose() {
 		rl.BeginTextureMode(dropTarget)
+
+		gui.SetStyle(gui.LISTVIEW, gui.TEXT_SIZE, 44)
+		gamePicked = gui.ListView(rl.NewRectangle(0, 0, 300, 50), listView, &scroll, active)
+		if gamePicked != active {
+			active = gamePicked
+		}
+
+		okButton = gui.Button(rl.NewRectangle(300, 0, 50, 50), "Play")
+
 		rl.DrawTextEx(font, dropText, rl.Vector2{
 			X: float32(width/2 - int32(centerDropTextX)),
 			Y: float32((height+colorUIHeight)/2 - int32(centerDropTextY))}, dropTextFontSize, 4, uiTextColor)
@@ -347,9 +385,15 @@ func displayMainMenu(chip *chip8.Chip8, program []byte, font rl.Font, centerDrop
 	if rl.IsFileDropped() {
 		program = readFileToBuffer(rl.LoadDroppedFiles()[0])
 		copy(chip.Memory[0x200:], program)
-
+		state = "play"
 	}
 
-	state = "play"
+	if okButton {
+		okButton = false
+		program = readFileToBuffer(defaultGames[listOfGames[gamePicked]])
+		copy(chip.Memory[0x200:], program)
+		state = "play"
+	}
+
 	return program
 }
